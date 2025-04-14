@@ -1,0 +1,14 @@
+[
+  {
+    "domain": "*.8x8-acc-stg.aws.infra8.8x8cloud.net",
+    "program": "8x8"
+  },
+  {
+    "domain": "*.8x8-infra8o11y-prod.aws.infra8.8x8cloud.net",
+    "program": "8x8"
+  },
+  {
+    "domain": "*.8x8-infra8o11y-staging.aws.infra8.8x8cloud.net",
+    "program": "8x8"
+  }
+]

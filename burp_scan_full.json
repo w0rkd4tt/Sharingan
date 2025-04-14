@@ -1,0 +1,33 @@
+{
+    "type": "scan_configuration",
+    "version": "1.0",
+    "name": "Full Scanner (XSS, SQLi, CMDi, SSTI)",
+    "description": "Thorough scan for common vulnerabilities: XSS, SQLi, CMDi, SSTI",
+    "audit": {
+      "insertion_points": [
+        "parameters",
+        "url_path",
+        "headers",
+        "cookies"
+      ],
+      "audit_checks": [
+        "cross_site_scripting",
+        "sql_injection",
+        "os_command_injection",
+        "server_side_template_injection"
+      ]
+    },
+    "crawl": {
+      "link_depth_limit": 10,
+      "request_limit": 10000,
+      "crawl_forms": true,
+      "crawl_in_scope_only": true,
+      "parse_javascript": true,
+      "parse_comments": true
+    },
+    "application_login": {
+      "detect_logged_out": true,
+      "attempt_login": false
+    }
+  }
+  

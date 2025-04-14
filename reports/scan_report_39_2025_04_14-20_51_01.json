@@ -1,0 +1,28 @@
+{
+    "summary": {
+        "scan_id": "39",
+        "status": "succeeded",
+        "timestamp": "2025_04_14-20_51_01"
+    },
+    "metrics": {
+        "current_url": "",
+        "crawl_requests_made": 4,
+        "crawl_network_errors": 4,
+        "crawl_unique_locations_visited": 0,
+        "crawl_requests_queued": 0,
+        "audit_queue_items_completed": 0,
+        "audit_queue_items_waiting": 0,
+        "audit_requests_made": 0,
+        "audit_network_errors": 0,
+        "issue_events": 0,
+        "crawl_and_audit_caption": "Identifying items to audit.",
+        "crawl_and_audit_progress": 100,
+        "total_elapsed_time": 1
+    },
+    "vulnerabilities": {
+        "high": [],
+        "medium": [],
+        "low": [],
+        "info": []
+    }
+}
