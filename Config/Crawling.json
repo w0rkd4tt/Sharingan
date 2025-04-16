@@ -1,0 +1,34 @@
+{
+    "crawler":{
+        "crawl_optimization":{
+            "await_navigation_timeout":100,
+            "clickable_fingerprinting_threshold":4,
+            "crawl_strategy":"most complete",
+            "crawl_strategy_customized":false,
+            "crawl_using_provided_logins_only":false,
+            "dom_idle_threshold":100,
+            "drop_advert_requests":true,
+            "form_destination_optimization_threshold":6,
+            "form_submission_optimization_threshold":30,
+            "fully_explore_floating_forms":true,
+            "incy_wincy":false,
+            "link_fingerprinting_threshold":2,
+            "logging_directory":"",
+            "logging_enabled":false,
+            "loopback_link_fingerprinting_threshold":4,
+            "maximum_form_field_permutations":15,
+            "maximum_form_permutations":50,
+            "maximum_link_depth":4,
+            "maximum_unmatched_anchor_tolerance":0,
+            "maximum_unmatched_form_tolerance":0,
+            "maximum_unmatched_frame_tolerance":0,
+            "maximum_unmatched_iframe_tolerance":0,
+            "maximum_unmatched_image_area_tolerance":0,
+            "maximum_unmatched_redirect_tolerance":0,
+            "network_idle_threshold":100,
+            "total_unmatched_feature_tolerance":0,
+            "use_accessible_text_for_visible_text":true,
+            "use_browser_cache":true
+        }
+    }
+}
