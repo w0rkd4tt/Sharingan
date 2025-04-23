@@ -1,0 +1,102 @@
+metadata:
+    language: v2
+    name: "Custom XSS Scanner"
+    description: "A BCheck for detecting XSS vulnerabilities using custom payloads"
+    author: "Security Researcher"
+    tags: "xss", "injection", "web"
+
+define:
+    # Custom payloads for XSS detection
+    custom_payloads = [
+        "<script>alert('XSS_TEST')</script>",
+        "<img src=x onerror=alert('XSS_TEST')>",
+        "<svg onload=alert('XSS_TEST')>",
+        "javascript:alert('XSS_TEST')",
+        "'-alert('XSS_TEST')-'",
+        "\"><script>alert('XSS_TEST')</script>",
+        "';alert('XSS_TEST')//",
+        "<ScRiPt>alert('XSS_TEST')</sCrIpT>",
+        "<img src=1 href=1 onerror=\"javascript:alert('XSS_TEST')\"></img>",
+        "<body onload=alert('XSS_TEST')>",
+        "<iframe src=\"javascript:alert('XSS_TEST')\"></iframe>",
+        "<details open ontoggle=\"alert('XSS_TEST')\">",
+        "<div onmouseover=\"alert('XSS_TEST')\">hover me</div>"
+    ]
+
+given request then
+    # Test URL parameters for XSS
+    for parameter in request.parameters
+        for payload in custom_payloads
+            send request:
+                parameter.value = payload
+                with callbacks:
+                    # Check if the payload is reflected without encoding
+                    if response.body.contains(payload) then
+                        report issue:
+                            severity: high
+                            confidence: firm
+                            detail: "XSS vulnerability detected in parameter {{parameter.name}}. The payload was reflected in the response without proper encoding or sanitization.\n\nPayload: {{payload}}\n\nParameter: {{parameter.name}}"
+                    
+                    # Check if the modified request appears to trigger JavaScript execution
+                    if response.body.contains("XSS_TEST") and not request.parameters.hasValueContaining("XSS_TEST") then
+                        report issue:
+                            severity: high
+                            confidence: firm
+                            detail: "Potential XSS vulnerability detected in parameter {{parameter.name}}. The payload marker 'XSS_TEST' was found in the response, suggesting JavaScript execution.\n\nPayload: {{payload}}\n\nParameter: {{parameter.name}}"
+    
+    # Test request headers for XSS
+    for header in ["User-Agent", "Referer", "Cookie", "X-Forwarded-For"]
+        for payload in custom_payloads
+            send request:
+                header.value = payload
+                with callbacks:
+                    if response.body.contains(payload) then
+                        report issue:
+                            severity: high
+                            confidence: firm
+                            detail: "XSS vulnerability detected in HTTP header {{header}}. The payload was reflected in the response without proper encoding or sanitization.\n\nPayload: {{payload}}\n\nHeader: {{header}}"
+    
+    # Test for DOM-based XSS
+    for payload in custom_payloads
+        for parameter in request.parameters
+            send request:
+                parameter.value = payload
+                with callbacks:
+                    if response.body.containsRegex("(eval|setTimeout|setInterval|Function|document\\.write|innerHTML|outerHTML).*{{payload}}") then
+                        report issue:
+                            severity: high
+                            confidence: tentative
+                            detail: "Potential DOM-based XSS vulnerability detected in parameter {{parameter.name}}. The payload appears in potentially unsafe JavaScript contexts.\n\nPayload: {{payload}}\n\nParameter: {{parameter.name}}"
+
+# Run custom validation for stored XSS
+define:
+    base_url = null
+
+given response then
+    # Set the base URL if not already set
+    if base_url is null then
+        base_url = response.url.baseUrl()
+    
+    # Look for forms that might be used to submit content
+    if response.body.containsRegex("<form[^>]*>") then
+        # Extract all form targets and check them for stored XSS
+        for form_target in response.body.extractRegex("action=[\"']([^\"']*)[\"']", 1)
+            # Construct the full URL if it's a relative path
+            if not form_target.startsWith("http") then
+                if form_target.startsWith("/") then
+                    form_target = base_url + form_target
+                else
+                    form_target = response.url.directory() + "/" + form_target
+            
+            # Check the form target for stored XSS
+            # This is a simplified example - real implementation would parse and submit the form
+            for payload in custom_payloads
+                send request:
+                    method: "GET"
+                    url: form_target
+                    with callbacks:
+                        if response.body.contains(payload) then
+                            report issue:
+                                severity: high
+                                confidence: firm
+                                detail: "Potential stored XSS vulnerability detected. A custom XSS payload was found in the response from {{form_target}}.\n\nPayload: {{payload}}"

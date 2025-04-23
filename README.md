@@ -1,153 +1,161 @@
-![alt text](telegram-cloud-photo-size-5-6294263289865160011-y.jpg)
+# Sharingan - Công Cụ Quét Bảo Mật Web Tự Động
 
-# Sharingan - Advanced Web Security Scanner
+![Sharingan Logo](telegram-cloud-photo-size-5-6294263289865160011-y.jpg)
 
-An automated web security scanning tool that combines multiple reconnaissance tools with Burp Suite's scanning capabilities and provides vulnerability notifications via Telegram.
+## Tổng Quan
 
-## Overview
+Sharingan là một công cụ quét bảo mật web tự động kết hợp nhiều công cụ trinh sát với khả năng quét của Burp Suite và cung cấp thông báo lỗ hổng qua Telegram.
 
-Sharingan automates the following workflow:
-1. Domain Discovery & Crawling
-2. Vulnerability Scanning
-3. Report Generation
-4. Notification System
-
-## Architecture
+## Sơ Đồ Kiến Trúc
 
 ```mermaid
 graph TD
-    A[Domain Input] --> B[Domain Discovery]
-    B --> C[URL Crawling]
-    C --> D[Local Database]
+    A[Input Domain] --> B[Khám Phá Domain]
+    B --> C[Crawl URL]
+    C --> D[Cơ Sở Dữ Liệu]
     D --> E[Burp Scanner]
     
-    subgraph "Burp Suite Scanning"
-        E --> E1[Custom Extensions]
-        E --> E2[BChecks Rules]
-        E1 --> E3[Vulnerability Detection]
+    subgraph "Quét Burp Suite"
+        E --> E1[Extensions Tùy Chỉnh]
+        E --> E2[Luật BChecks]
+        E1 --> E3[Phát Hiện Lỗ Hổng]
         E2 --> E3
     end
     
-    E3 --> F[Report Generation]
-    F --> G[Telegram Notification]
-    
-    subgraph "Domain Discovery Tools"
-        B --> B1[ProjectDiscovery Chaos]
-        B1 --> D[Local Database]
-    end
-    
-    subgraph "Crawling Tools"
-        C --> C1[GAU]
-        C --> C2[Katana]
-        C --> C3[Hakrawler]
-        C --> C4[Waybackurls]
-        C --> C5[Subjs]
-    end
+    E3 --> F[Tạo Báo Cáo]
+    F --> G[Thông Báo Telegram]
 ```
 
-## Features
+## Quy Trình Hoạt Động
 
-### 1. Domain Discovery & Crawling
-- Integration with multiple reconnaissance tools:
-  - **GAU**: URL discovery from various sources
-  - **Katana**: Smart crawler with JavaScript parsing
-  - **Hakrawler**: Fast web crawler
-  - **Waybackurls**: Historical URL discovery
-  - **Subjs**: JavaScript file discovery
-- Data storage in local database for persistence
+```mermaid
+sequenceDiagram
+    participant User
+    participant Scanner
+    participant VPN
+    participant BurpSuite
+    participant Telegram
 
-### 2. Vulnerability Scanning
-- Burp Suite REST API integration
-- Custom configurations:
-  - Burp Suite extensions
-  - BChecks integration
-  - Customized scanning profiles
+    User->>Scanner: Bắt đầu quét
+    alt Bật crawl
+        Scanner->>Scanner: Khám phá mục tiêu
+    end
+    
+    loop Cho mỗi mục tiêu
+        alt Bật VPN
+            Scanner->>VPN: Đổi IP
+        end
+        Scanner->>BurpSuite: Tạo quét
+        loop Kiểm tra trạng thái
+            Scanner->>BurpSuite: Kiểm tra
+            alt Phát hiện lỗ hổng
+                Scanner->>Telegram: Gửi cảnh báo
+            end
+        end
+    end
+    Scanner->>User: Kết quả cuối cùng
+```
 
-### 3. Report Generation
-- Vulnerability categorization by severity:
-  - High
-  - Medium
-  - Low
-  - Informative
-- Multiple output formats:
+## Tính Năng
+
+### 1. Khám Phá và Crawl Domain
+- Tích hợp nhiều công cụ trinh sát:
+  - **GAU**: Khám phá URL từ nhiều nguồn
+  - **Katana**: Crawler thông minh với phân tích JavaScript
+  - **Hakrawler**: Web crawler tốc độ cao
+  - **Waybackurls**: Khám phá URL lịch sử
+  - **Subjs**: Khám phá file JavaScript
+
+### 2. Quét Lỗ Hổng
+- Tích hợp Burp Suite REST API
+- Cấu hình tùy chỉnh:
+  - Extensions Burp Suite
+  - Tích hợp BChecks
+  - Profile quét tùy chỉnh
+
+### 3. Tạo Báo Cáo
+- Phân loại lỗ hổng theo mức độ nghiêm trọng
+- Nhiều định dạng xuất:
   - Markdown (.md)
   - JSON
 
-### 4. Notification System
-- Real-time Telegram notifications
-- Vulnerability details including:
-  - Severity
-  - URL
-  - Description
-  - Remediation steps
+### 4. Hệ Thống Thông Báo
+- Thông báo Telegram theo thời gian thực
+- Chi tiết lỗ hổng
 
-## Prerequisites
+## Yêu Cầu Hệ Thống
 
-- Burp Suite Professional with REST API enabled
+- Burp Suite Professional với REST API
 - Python 3.8+
-- Required tools:
-  ```bash
-  go install github.com/lc/gau/v2/cmd/gau@latest
-  go install github.com/projectdiscovery/katana/cmd/katana@latest
-  go install github.com/hakluke/hakrawler@latest
-  go install github.com/tomnomnom/waybackurls@latest
-  ```
+- Các công cụ cần thiết:
+```bash
+go install github.com/lc/gau/v2/cmd/gau@latest
+go install github.com/projectdiscovery/katana/cmd/katana@latest
+go install github.com/hakluke/hakrawler@latest
+go install github.com/tomnomnom/waybackurls@latest
+```
 
-## Installation
+## Cài Đặt
 
-1. Clone the repository:
+1. Tải mã nguồn:
 ```bash
 git clone https://github.com/yourusername/Sharingan.git
 cd Sharingan
 ```
 
-2. Install Python dependencies:
+2. Cài đặt thư viện Python:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configure environment variables:
+3. Cấu hình môi trường:
 ```bash
 cp .env.example .env
-# Edit .env with your configurations
+# Chỉnh sửa file .env với cấu hình của bạn
 ```
 
-## Usage
+## Cách Sử Dụng
 
-1. Basic scan:
+### Lệnh Cơ Bản
 ```bash
-python scanner.py -d example.com
+python main.py --target-urls example.com
 ```
 
-2. Advanced scan with custom configuration:
+### Các Tùy Chọn
 ```bash
-python scanner.py -d example.com -c custom_config.json --format md
+python main.py --crawl --use-vpn --target-urls example.com --max-targets 10
 ```
 
-## Configuration
+### Tham Số
+- `--crawl`: Bật tính năng crawl
+- `--target-urls`: URL mục tiêu
+- `--max-targets`: Số lượng mục tiêu tối đa
+- `--use-vpn`: Bật luân chuyển VPN
 
-### Burp Suite Setup
-1. Enable REST API in Burp Suite
-2. Configure API endpoint (default: http://localhost:1337/v0.1)
-3. Set up BChecks and required extensions
+## Cấu Hình
 
-### Telegram Bot Setup
-1. Create bot using BotFather
-2. Configure bot token in .env file
-3. Set up chat ID for notifications
+### Thiết Lập Burp Suite
+1. Bật REST API trong Burp Suite
+2. Cấu hình API endpoint
+3. Thiết lập BChecks
 
-## Output Examples
+### Thiết Lập Telegram Bot
+1. Tạo bot qua BotFather
+2. Cấu hình token trong .env
+3. Thiết lập chat ID
 
-### Markdown Report
+## Ví Dụ Báo Cáo
+
+### Markdown
 ```markdown
-# Scan Report
-## High Severity
+# Báo Cáo Quét
+## Mức Độ Cao
 - [CVE-2023-XXXX] SQL Injection
   - URL: https://example.com/vulnerable
-  - Description: ...
+  - Mô tả: ...
 ```
 
-### JSON Report
+### JSON
 ```json
 {
   "vulnerabilities": {
@@ -159,22 +167,22 @@ python scanner.py -d example.com -c custom_config.json --format md
 }
 ```
 
-## License
+## Giấy Phép
 
 MIT License
 
-## Contributing
+## Đóng Góp
 
-1. Fork the repository
-2. Create your feature branch
-3. Submit a pull request
+1. Fork dự án
+2. Tạo nhánh tính năng
+3. Gửi pull request
 
-## Authors
+## Tác Giả
 
-- Your Name (@yourusername)
+- Tên của bạn (@yourusername)
 
-## Acknowledgments
+## Cảm Ơn
 
-- ProjectDiscovery Team
+- Team ProjectDiscovery
 - PortSwigger (Burp Suite)
-- Contributors of all integrated tools
+- Cộng đồng phát triển
