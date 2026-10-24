@@ -1,17 +1,7 @@
 """
-Sharingan main package
+SharinganV2 - Công cụ kết hợp nhiều công cụ recon web để tìm kiếm lỗ hổng
 """
-from .core.vpn import NordVPNRotator
-from .core.scanner import Scanner, Crawler
-from .core.chaos import ChaosScanner
-from .core.notification import TelegramNotifier
 
-__version__ = '0.1.0'
-
-__all__ = [
-    'NordVPNRotator',
-    'Scanner',
-    'Crawler',
-    'ChaosScanner',
-    'TelegramNotifier'
-]
+__version__ = "2.0.0"
+__author__ = "w0rkkd4"
+__email__ = "datnguyenlequoc2001@gmail.com"
