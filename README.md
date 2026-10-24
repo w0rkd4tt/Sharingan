@@ -32,10 +32,11 @@ sharingan dual <target> <repo> # Both flows + cross-flow correlation
 └────────────────────────────────────────────────────┘
 ```
 
-## 4 cách sử dụng
+## 5 cách sử dụng
 
 | Phương pháp | Mô tả | Doc |
 |-------------|-------|-----|
+| **Prompt** | Paste prompt vào Claude.ai/ChatGPT — zero setup | [docs/usage-prompt.md](docs/usage-prompt.md) |
 | **Claude Code** | Slash commands + hooks + MCP servers | [docs/usage-claude-code.md](docs/usage-claude-code.md) |
 | **Codex / OpenAI CLI** | GPT-4o, o3, Azure, Together, Groq | [docs/usage-codex-cli.md](docs/usage-codex-cli.md) |
 | **Python API** | Library cho pipeline, CI/CD, automation | [docs/usage-api.md](docs/usage-api.md) |
