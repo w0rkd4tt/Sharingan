@@ -1,0 +1,10 @@
+{
+  "provider": "anthropic",
+  "model": "",
+  "api_key": "",
+  "base_url": "",
+  "max_tokens": 4096,
+  "temperature": 0.0,
+  "rate_limit_rps": 10,
+  "default_budget": 100
+}

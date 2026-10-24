@@ -1,0 +1,7 @@
+# LLM backends (install what you need)
+anthropic>=0.40.0
+openai>=1.50.0
+httpx>=0.27.0
+
+# Core (always needed)
+asyncio-compat>=0.1.0

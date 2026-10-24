@@ -75,22 +75,75 @@ Unified store at `targets/<TARGET>/cache/primitives.jsonl`. Both flows write her
 | Memory Store | `targets/<TARGET>/memory_store.json` |
 | Budget | `targets/<TARGET>/budget.json` |
 
+## Agent Runtime Layer
+
+Standalone Python runtime — runs Sharingan without Claude Code. Supports any LLM backend.
+
+### CLI Usage
+
+```bash
+# Configure backend
+python sharingan_cli.py config --provider anthropic --model claude-sonnet-4-20250514
+python sharingan_cli.py config --provider ollama --model llama3.1 --base-url http://localhost:11434
+
+# Run assessments
+python sharingan_cli.py pentest <target> --scope scope.json
+python sharingan_cli.py audit <repo_path>
+python sharingan_cli.py dual <target> <repo_path> --scope scope.json --budget 200
+```
+
+### LLM Backends
+
+| Provider | Class | API |
+|----------|-------|-----|
+| `anthropic` | `AnthropicBackend` | Messages API (Claude) |
+| `openai` | `OpenAIBackend` | Chat Completions (GPT-4, Azure, Together) |
+| `ollama` | `OllamaBackend` | Ollama native + OpenAI-compat (vLLM, llama.cpp, LM Studio) |
+
+### Middleware (replaces .claude/hooks/ in standalone mode)
+
+| Middleware | Replaces Hook | What |
+|-----------|--------------|------|
+| `ScopeGuardMiddleware` | `scope_guard.py` | Block out-of-scope hosts |
+| `UAInjectorMiddleware` | `force_user_agent.py` | Inject Chrome UA |
+| `RateLimiterMiddleware` | `rate_limiter.py` | Token-bucket RPS |
+| `DestructiveGuardMiddleware` | `destructive_guard.py` | Block dangerous commands |
+| `AuditLoggerMiddleware` | `finding_logger.py` | JSONL audit trail |
+
+### Architecture
+
+```
+sharingan_cli.py → Coordinator → Agent(s) → LLM Backend
+                                    ↓
+                              Tool Registry → Middleware → Tool Execution
+                                    ↓
+                              core/ (PrimitiveCache, Budget, Memory, Brain, AntiBias)
+```
+
 ## Directory Layout
 
 ```
 sharingan/
 ├── CLAUDE.md                    ← you are here
+├── sharingan_cli.py             ← standalone CLI entry point
 ├── coordinator.md               ← multi-agent coordinator prompt
-├── .claude/hooks/               ← runtime enforcement hooks
-├── .claude/commands/            ← slash commands
+├── .claude/hooks/               ← Claude Code enforcement hooks
+├── .claude/commands/            ← Claude Code slash commands
+├── runtime/                     ← agent runtime layer
+│   ├── llm/                     ← LLM backend abstraction (anthropic, openai, ollama)
+│   ├── tools/                   ← tool registry (shell, file_ops, web, scanners)
+│   ├── middleware/              ← enforcement middleware (scope, rate, UA, destructive)
+│   ├── agent.py                 ← Agent class (tool-use loop)
+│   ├── session.py               ← hunt session manager
+│   └── coordinator.py           ← multi-agent orchestrator
 ├── agents/web/                  ← web flow agent prompts
 ├── agents/src/                  ← whitebox flow agent prompts
-├── core/                        ← Python infrastructure
+├── core/                        ← Python infrastructure (cache, budget, memory, brain)
 ├── src/                         ← SharinganV2 recon/scanner (existing)
 ├── mcp-servers/                 ← MCP server implementations
 ├── knowledge/                   ← attack patterns, sink tables, oracle configs
 ├── targets/                     ← per-target working directories
-├── config/                      ← UA profiles, rate limits, budgets
+├── config/                      ← UA profiles, rate limits, budgets, sharingan.json
 ├── tools/                       ← shared utilities
 └── scripts/                     ← brain sync, infra health
 ```

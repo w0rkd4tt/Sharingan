@@ -1,171 +1,183 @@
-# SharinganV2
+# Sharingan
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/sharinganv2/main/assets/sharingan-logo.png" alt="SharinganV2 Logo" width="200"/>
-</p>
+**Dual-flow security harness** — Web/Host blackbox pentest + Whitebox source code audit, powered by any LLM.
 
-<p align="center">
-  <strong>Advanced Web Reconnaissance Tool for Security Professionals</strong>
-</p>
+```
+sharingan pentest <target>     # Web/Host blackbox pentest
+sharingan audit <repo>         # Whitebox source code audit
+sharingan dual <target> <repo> # Both flows + cross-flow correlation
+```
 
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#configuration">Configuration</a> •
-  <a href="#tools-integration">Tools Integration</a> •
-  <a href="#contributing">Contributing</a> •
-  <a href="#license">License</a>
-</p>
+## Architecture
 
-## Features
+```
+┌─ CLI ──────────────────────────────────────────────┐
+│  sharingan_cli.py | Claude Code /pentest /audit     │
+└──────────────────────────┬─────────────────────────┘
+                           │
+┌─ Coordinator ────────────┴─────────────────────────┐
+│  Recon → Mapper → Hunter(s) → Exploiter → Reporter │
+│  Session: PrimitiveCache + Budget + Memory + Brain  │
+│  Anti-Bias: off-prior 20%, godhand, R/I/A labels    │
+└──────────────────────────┬─────────────────────────┘
+                           │
+┌─ Agent Runtime ──────────┴─────────────────────────┐
+│  Agent (system prompt + tool-use loop)              │
+│  Tools: shell, http, nuclei, ffuf, katana, semgrep  │
+│  Middleware: scope → destructive → UA → rate → audit │
+└──────────────────────────┬─────────────────────────┘
+                           │
+┌─ LLM Backend ────────────┴─────────────────────────┐
+│  Anthropic (Claude) │ OpenAI (GPT-4) │ Ollama/vLLM │
+└────────────────────────────────────────────────────┘
+```
 
-SharinganV2 combines multiple web reconnaissance tools to provide comprehensive security testing capabilities:
+## 4 cách sử dụng
 
-- **URL Discovery**: ParamSpider, waybackurls, gauplus, hakrawler, and katana to find hidden endpoints
-- **Parameter Detection**: Automatically identifies URL parameters for deeper testing
-- **Vulnerability Scanning**: Optional fuzzing templates to detect common security issues
-- **Burp Suite Integration**: Sends findings to Burp Suite via REST API for deeper analysis
-- **Telegram Notifications**: Real-time alerts and reports via Telegram bot
-- **Beautiful Reports**: Generates comprehensive HTML and Markdown reports
-- **Modular Architecture**: Easily extendable to add new tools and capabilities
+| Phương pháp | Mô tả | Doc |
+|-------------|-------|-----|
+| **Claude Code** | Slash commands + hooks + MCP servers | [docs/usage-claude-code.md](docs/usage-claude-code.md) |
+| **Codex / OpenAI CLI** | GPT-4o, o3, Azure, Together, Groq | [docs/usage-codex-cli.md](docs/usage-codex-cli.md) |
+| **Python API** | Library cho pipeline, CI/CD, automation | [docs/usage-api.md](docs/usage-api.md) |
+| **Local Models** | Ollama, vLLM, llama.cpp — 100% offline | [docs/usage-local-model.md](docs/usage-local-model.md) |
 
-## Installation
+## Quick Start
 
-### Prerequisites
-
-- Python 3.7+
-- The following external tools:
-  - [ParamSpider](https://github.com/0xKayala/ParamSpider)
-  - [waybackurls](https://github.com/tomnomnom/waybackurls)
-  - [gau/gauplus](https://github.com/bp0lr/gauplus)
-  - [hakrawler](https://github.com/hakluke/hakrawler)
-  - [katana](https://github.com/projectdiscovery/katana)
-
-### Setup
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/sharinganv2.git
-   cd sharinganv2
-   ```
-
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use: venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Create configuration files:
-   ```bash
-   python sharingan.py --create-env
-   python sharingan.py --create-templates
-   python sharingan.py --create-config
-   ```
-
-5. Update the `.env` file with your configuration:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your favorite editor
-   ```
-
-## Usage
-
-### Basic Usage
+### Claude Code (nhanh nhất)
 
 ```bash
-python sharingan.py -t example.com -o reports/example
+git clone https://github.com/w0rkd4tt/Sharingan.git
+cd Sharingan
+# Trong Claude Code:
+/pentest example.com
 ```
 
-### With Fuzzing Enabled
+### Standalone CLI
 
 ```bash
-python sharingan.py -t example.com --fuzzing
+git clone https://github.com/w0rkd4tt/Sharingan.git
+cd Sharingan
+pip install -r requirements-runtime.txt
+
+# Config backend
+export ANTHROPIC_API_KEY="sk-ant-..."
+python sharingan_cli.py config --provider anthropic
+
+# Hoặc dùng local model
+python sharingan_cli.py config --provider ollama --model llama3.1
+
+# Tạo scope
+mkdir -p targets/example.com
+echo '{"in_scope": ["*.example.com"]}' > targets/example.com/scope.json
+
+# Chạy
+python sharingan_cli.py pentest example.com
+python sharingan_cli.py audit ./my-repo
+python sharingan_cli.py dual example.com ./my-repo --budget 200
 ```
 
-### With Burp Suite Integration
+## Flows
 
-```bash
-python sharingan.py -t example.com --burp-api http://localhost:1337/v0.1 --burp-key YOUR_API_KEY
-```
-
-### With Telegram Notifications
-
-```bash
-python sharingan.py -t example.com --telegram-token YOUR_BOT_TOKEN --telegram-chat YOUR_CHAT_ID
-```
-
-### Advanced Options
-
-```bash
-python sharingan.py -t example.com --threads 20 --verbose --fuzzing
-```
-
-## Configuration
-
-### Environment Variables
-
-Configure SharinganV2 by creating a `.env` file with the following options:
+### Flow 1: Web/Host Blackbox Pentest
 
 ```
-# Burp Suite API
-BURP_API_URL=http://localhost:1337/v0.1
-BURP_API_KEY=your_burp_api_key_here
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=your_telegram_token_here
-TELEGRAM_CHAT_ID=your_chat_id_here
-
-# Templates
-TEMPLATES_DIR=src/template
-
-# Options
-ENABLE_FUZZING=false
+/pentest target → recon-web → mapper → hunter-web ×N → exploiter → reporter-web
 ```
 
-### Fuzzing Templates
+5 agents chạy tuần tự. Hunter chạy loop (tối đa 5 rounds), anti-bias enforce family rotation.
 
-Custom fuzzing templates can be added to the `src/template` directory. Each template should be a JSON file with the following structure:
+### Flow 2: Whitebox Source Code Audit
 
-```json
-{
-  "name": "Cross-Site Scripting (XSS)",
-  "description": "Kiểm tra lỗ hổng XSS bằng các payload phổ biến",
-  "payloads": [
-    "<script>alert(1)</script>",
-    "<img src=x onerror=alert(1)>"
-  ],
-  "patterns": [
-    "<script>alert(1)</script>",
-    "<img src=x onerror=alert(1)>"
-  ]
-}
+```
+/audit repo → recon-src → normalize → graph → hunter-src ×N → reporter-src
 ```
 
-## Tools Integration
+5 agents. Normalize parse code thành function catalog. Graph build data flow graph. Hunter trace taint source→sink.
 
-SharinganV2 integrates with the following external tools:
+### Dual Flow
 
-- **ParamSpider**: Discovers parameters in URL endpoints
-- **waybackurls**: Finds historical URLs from the Wayback Machine
-- **gau/gauplus**: Gathers URLs from multiple sources
-- **hakrawler**: Fast web crawler for security testing
-- **katana**: Advanced crawling and spidering framework
+```
+/dual target repo → [web flow || src flow] → cross-flow bridge → unified report
+```
 
-## Contributing
+Cả 2 flows chạy song song. Cross-flow bridge:
+- Same vuln class found by both → **DUAL-CONFIRMED** (highest confidence)
+- Whitebox taint chain → web exploitation roadmap
+- Web oracle confirmation → upgrade whitebox static-only → runtime-validated
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+## Core Components
+
+| Component | File | Vai trò |
+|-----------|------|---------|
+| **PrimitiveCache** | `core/primitive_cache.py` | JSONL store cho findings, dedup, chain matching |
+| **BudgetGovernor** | `core/budget.py` | Per-flow spend tracking, hard stop |
+| **MemoryStore** | `core/memory_store.py` | Cross-session state (hunt_state, hypotheses) |
+| **AntiBiasEngine** | `core/anti_bias.py` | Off-prior 20%, family rotation, R/I/A validation |
+| **Brain** | `core/brain.py` | Per-target knowledge (tech_stack, api_map, discoveries) |
+
+## Enforcement
+
+Mọi tool call đi qua middleware chain (hoặc hooks trong Claude Code):
+
+| Enforcement | Hành vi |
+|-------------|---------|
+| **Scope Guard** | Chặn request tới host ngoài scope.json |
+| **Destructive Guard** | Chặn `rm -rf`, `sqlmap --os-shell`, `msfconsole`, ... |
+| **UA Injector** | Inject Chrome User-Agent cho mọi HTTP request |
+| **Rate Limiter** | Token-bucket, default 10 RPS |
+| **Audit Logger** | JSONL log mọi tool call |
+
+## Primitive Classes (closed set)
+
+```
+file_read, file_write, secret_read, ssrf, sqli, rce, deser,
+idor_read, idor_write, stored_xss, auth_bypass,
+race_condition, path_traversal, open_redirect
+```
+
+Hunters không được invent class mới. Mỗi finding phải có `oracle_ran: true` trước khi vào report.
+
+## Directory Layout
+
+```
+Sharingan/
+├── sharingan_cli.py              # standalone CLI
+├── CLAUDE.md                     # project rules (20 invariants)
+├── runtime/                      # agent runtime layer
+│   ├── llm/                      #   LLM backends (anthropic, openai, ollama)
+│   ├── tools/                    #   tool registry + implementations
+│   ├── middleware/                #   enforcement middleware
+│   ├── agent.py                  #   Agent class (tool-use loop)
+│   ├── session.py                #   hunt session manager
+│   └── coordinator.py            #   multi-agent orchestrator
+├── agents/web/                   # web flow agent prompts (5 agents)
+├── agents/src/                   # src flow agent prompts (5 agents)
+├── core/                         # shared infra (cache, budget, memory, brain)
+├── .claude/hooks/                # Claude Code enforcement hooks
+├── .claude/commands/             # Claude Code slash commands
+├── mcp-servers/                  # MCP server implementations
+├── knowledge/                    # sink tables, oracle configs, brain patterns
+├── config/                       # UA profiles, rate limits, sharingan.json
+├── targets/                      # per-target working directories
+├── src/                          # SharinganV2 recon/scanner tools
+├── tools/                        # shared utilities
+├── scripts/                      # brain sync, infra health
+└── docs/                         # usage guides per method
+```
+
+## LLM Backend Support
+
+| Provider | Models | Tool Calling | Setup |
+|----------|--------|-------------|-------|
+| **Anthropic** | Claude Sonnet/Opus/Haiku | Native tool_use | `ANTHROPIC_API_KEY` |
+| **OpenAI** | GPT-4o, o3, GPT-4o-mini | Function calling | `OPENAI_API_KEY` |
+| **Azure OpenAI** | GPT-4 deployments | Function calling | `--base-url` |
+| **Together / Groq** | Llama, Mixtral, ... | Function calling | `--base-url` + key |
+| **Ollama** | Llama 3.1, Qwen, DeepSeek, ... | Ollama native | Local, no key |
+| **vLLM** | Any HuggingFace model | OpenAI-compat | Local GPU server |
+| **llama.cpp** | GGUF models | OpenAI-compat | Local, CPU ok |
+| **LM Studio** | Any supported model | OpenAI-compat | Local GUI |
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgements
-
-- All the amazing open-source tools that SharinganV2 builds upon
-- The security research community for their continuous innovation
+MIT
