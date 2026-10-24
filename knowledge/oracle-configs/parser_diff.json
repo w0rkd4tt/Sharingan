@@ -1,0 +1,14 @@
+{
+  "type": "parser_diff",
+  "description": "Exploit differences between parsing stages",
+  "applicable_classes": ["deser"],
+  "technique": "Craft input valid in one parser but malicious in another (e.g., JSON vs YAML, XML external entities)",
+  "examples": [
+    "YAML anchors: &anchor *anchor causing infinite expansion",
+    "PHP object injection: O:8:\"stdClass\":0:{}",
+    "Java deserialization: ysoserial gadget chains",
+    "XML external entities: <!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>"
+  ],
+  "detection": "Unexpected behavior, error messages indicating parsing differences",
+  "timeout_seconds": 20
+}

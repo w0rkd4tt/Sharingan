@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "pentest-tools": {
+      "command": "node",
+      "args": ["mcp-servers/pentest-tools/server.js"],
+      "env": {
+        "PENTEST_ROOT": ".",
+        "ACTIVE_TARGET": "",
+        "SCOPE_FILE": ""
+      }
+    },
+    "siyuan-brain": {
+      "command": "python3",
+      "args": ["mcp-servers/siyuan-brain/server.py"],
+      "env": {}
+    },
+    "burp-proxy": {
+      "command": "java",
+      "args": ["-jar", "mcp-servers/burp-proxy/mcp-proxy.jar", "--sse-url", "http://127.0.0.1:9876"],
+      "env": {
+        "MCP_SSE_URL": "http://127.0.0.1:9876"
+      }
+    },
+    "code-analysis": {
+      "command": "python3",
+      "args": ["mcp-servers/code-analysis/server.py"],
+      "env": {
+        "CODEQL_HOME": "",
+        "SEMGREP_RULES": ""
+      }
+    }
+  }
+}

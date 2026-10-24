@@ -1,0 +1,11 @@
+{
+  "default_total": 100,
+  "profiles": {
+    "quick": 30,
+    "normal": 100,
+    "deep": 300,
+    "exhaustive": 500
+  },
+  "per_family_cap": 25,
+  "off_prior_minimum_ratio": 0.20
+}

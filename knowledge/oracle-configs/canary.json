@@ -1,0 +1,10 @@
+{
+  "type": "canary",
+  "description": "Inject unique marker, check if it appears in output",
+  "applicable_classes": ["file_read", "file_write", "secret_read", "ssrf", "stored_xss", "path_traversal"],
+  "marker_template": "SHARINGAN_CANARY_{random_hex_8}",
+  "verification": "Check response body, headers, or OOB callback for marker presence",
+  "oob_server": "interactsh or custom callback server",
+  "timeout_seconds": 30,
+  "false_positive_check": "Verify marker is not reflected from input without processing"
+}

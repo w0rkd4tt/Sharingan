@@ -1,0 +1,40 @@
+{
+  "description": "Cross-target attack patterns shared across engagements",
+  "patterns": [
+    {
+      "id": "pat_login_bypass_js",
+      "name": "Login bypass via JS bundle analysis",
+      "chain": "bypass_login → load_js_bundles → extract_secrets → unauth_api_endpoints → rce",
+      "applicability": "SPAs with client-side routing and API backends",
+      "evidence_needed": "READ on JS file containing hardcoded credentials or API keys"
+    },
+    {
+      "id": "pat_ssrf_to_cloud_meta",
+      "name": "SSRF to cloud metadata",
+      "chain": "ssrf → cloud_metadata (169.254.169.254) → secret_read → rce",
+      "applicability": "Cloud-hosted applications (AWS/GCP/Azure)",
+      "evidence_needed": "Canary oracle on SSRF, READ on metadata response"
+    },
+    {
+      "id": "pat_file_upload_rce",
+      "name": "File upload to RCE",
+      "chain": "file_write → path_traversal → rce (webshell)",
+      "applicability": "Applications with file upload and web-accessible upload directory",
+      "evidence_needed": "Canary oracle on file write, READ on webshell execution"
+    },
+    {
+      "id": "pat_idor_chain",
+      "name": "IDOR to account takeover",
+      "chain": "idor_read → secret_read (password reset token) → auth_bypass",
+      "applicability": "APIs with predictable resource IDs and password reset flows",
+      "evidence_needed": "Fuzz oracle on IDOR, canary on token extraction"
+    },
+    {
+      "id": "pat_deser_rce",
+      "name": "Deserialization to RCE",
+      "chain": "deser → rce (gadget chain)",
+      "applicability": "Java/PHP/Python applications accepting serialized objects",
+      "evidence_needed": "Parser_diff oracle on deserialization, canary on command execution"
+    }
+  ]
+}

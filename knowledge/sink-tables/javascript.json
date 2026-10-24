@@ -1,0 +1,14 @@
+{
+  "language": "javascript",
+  "sinks": {
+    "rce": ["eval", "Function", "child_process.exec", "child_process.execSync", "child_process.spawn", "vm.runInContext", "vm.runInNewContext"],
+    "sqli": ["query", "raw", "sequelize.query", "knex.raw", "connection.query"],
+    "file_read": ["fs.readFile", "fs.readFileSync", "fs.createReadStream"],
+    "file_write": ["fs.writeFile", "fs.writeFileSync", "fs.createWriteStream"],
+    "ssrf": ["fetch", "axios.get", "axios.post", "http.request", "https.request", "got"],
+    "deser": ["JSON.parse", "unserialize", "deserialize"],
+    "xss": ["innerHTML", "outerHTML", "document.write", "document.writeln", "dangerouslySetInnerHTML", "v-html"],
+    "path_traversal": ["path.join", "path.resolve", "res.sendFile", "express.static"],
+    "open_redirect": ["res.redirect", "location.href", "window.location"]
+  }
+}

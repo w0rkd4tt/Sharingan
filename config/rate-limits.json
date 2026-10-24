@@ -1,0 +1,9 @@
+{
+  "default_rps": 10,
+  "profiles": {
+    "aggressive": 20,
+    "normal": 10,
+    "stealth": 3,
+    "crawl_only": 5
+  }
+}

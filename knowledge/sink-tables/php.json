@@ -1,0 +1,14 @@
+{
+  "language": "php",
+  "sinks": {
+    "rce": ["eval", "system", "exec", "shell_exec", "passthru", "popen", "proc_open", "pcntl_exec", "assert"],
+    "sqli": ["mysql_query", "mysqli_query", "PDO::query", "DB::raw", "whereRaw", "selectRaw"],
+    "file_read": ["file_get_contents", "fopen", "readfile", "file", "fread", "include", "require"],
+    "file_write": ["file_put_contents", "fwrite", "fopen", "move_uploaded_file"],
+    "ssrf": ["file_get_contents", "curl_exec", "fopen", "SoapClient"],
+    "deser": ["unserialize", "json_decode"],
+    "xss": ["echo", "print", "printf"],
+    "path_traversal": ["include", "require", "fopen", "file_get_contents"],
+    "open_redirect": ["header", "redirect"]
+  }
+}

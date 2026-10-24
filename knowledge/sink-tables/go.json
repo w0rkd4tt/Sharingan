@@ -1,0 +1,14 @@
+{
+  "language": "go",
+  "sinks": {
+    "rce": ["exec.Command", "exec.CommandContext", "os.StartProcess"],
+    "sqli": ["db.Query", "db.Exec", "db.QueryRow", "db.Prepare", "tx.Query", "tx.Exec"],
+    "file_read": ["os.Open", "os.ReadFile", "ioutil.ReadFile", "ioutil.ReadAll"],
+    "file_write": ["os.Create", "os.WriteFile", "ioutil.WriteFile", "os.OpenFile"],
+    "ssrf": ["http.Get", "http.Post", "http.NewRequest", "client.Do", "client.Get"],
+    "deser": ["json.Unmarshal", "xml.Unmarshal", "gob.Decode", "yaml.Unmarshal"],
+    "xss": ["template.HTML", "fmt.Fprintf"],
+    "path_traversal": ["filepath.Join", "os.Open", "http.ServeFile"],
+    "open_redirect": ["http.Redirect"]
+  }
+}

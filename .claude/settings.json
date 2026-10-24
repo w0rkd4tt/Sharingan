@@ -1,0 +1,83 @@
+{
+  "env": {
+    "ACTIVE_TARGET": "",
+    "SCOPE_FILE": "",
+    "RATE_LIMIT_RPS": "10",
+    "SHARINGAN_LOG_DIR": "/tmp/sharingan_audit",
+    "SHARINGAN_AGENT_ID": "coordinator"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /:*)",
+      "Bash(rm -rf /*:*)",
+      "Bash(dd if=:*)",
+      "Bash(mkfs:*)",
+      "Bash(shutdown:*)",
+      "Bash(reboot:*)",
+      "Bash(sqlmap --dump-all:*)",
+      "Bash(sqlmap --os-shell:*)",
+      "Bash(sqlmap --file-write:*)",
+      "Bash(sqlmap --file-read:*)",
+      "Bash(msfconsole:*)",
+      "Bash(msfvenom:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/scope_guard.py\"",
+            "timeout": 10,
+            "statusMessage": "Scope guard"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/force_user_agent.py\"",
+            "timeout": 10,
+            "statusMessage": "Browser UA guard"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/rate_limiter.py\"",
+            "timeout": 10,
+            "statusMessage": "Rate limiter"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/block_platform_emails.py\"",
+            "timeout": 10,
+            "statusMessage": "Email RoE guard"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/destructive_guard.py\"",
+            "timeout": 10,
+            "statusMessage": "Destructive command guard"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/finding_logger.py\"",
+            "timeout": 10,
+            "statusMessage": "Audit logger"
+          }
+        ]
+      }
+    ]
+  }
+}

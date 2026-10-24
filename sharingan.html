@@ -1,0 +1,1074 @@
+<title>Sharingan Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@700&display=swap');
+
+  /* Layout: single-column architecture doc with SVG diagrams, dark-first identity */
+  :root {
+    --bg: #0B0D11;
+    --surface: #13161D;
+    --surface-alt: #1A1E27;
+    --border: #252A35;
+    --border-strong: #353C4A;
+    --fg: #E4E7EC;
+    --fg-muted: #8B95A5;
+    --fg-dim: #5A6478;
+    --accent: #E63B2E;
+    --accent-glow: #FF4D3D;
+    --accent-dim: #7A231C;
+    --accent-bg: rgba(230, 59, 46, 0.08);
+    --blue: #4A9EFF;
+    --blue-bg: rgba(74, 158, 255, 0.08);
+    --blue-border: rgba(74, 158, 255, 0.2);
+    --teal: #2DD4A8;
+    --teal-bg: rgba(45, 212, 168, 0.08);
+    --teal-border: rgba(45, 212, 168, 0.2);
+    --purple: #A78BFA;
+    --purple-bg: rgba(167, 139, 250, 0.08);
+    --purple-border: rgba(167, 139, 250, 0.2);
+    --amber: #F59E0B;
+    --amber-bg: rgba(245, 158, 11, 0.08);
+    --amber-border: rgba(245, 158, 11, 0.2);
+    --rose: #FB7185;
+    --rose-bg: rgba(251, 113, 133, 0.08);
+    --rose-border: rgba(251, 113, 133, 0.2);
+    --green: #34D399;
+    --green-bg: rgba(52, 211, 153, 0.08);
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --r: 8px;
+    --r-sm: 5px;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg: #F8F9FB;
+      --surface: #FFFFFF;
+      --surface-alt: #F0F2F5;
+      --border: #E0E4EA;
+      --border-strong: #C8CED8;
+      --fg: #111318;
+      --fg-muted: #5A6370;
+      --fg-dim: #8B95A1;
+      --accent: #CC2D22;
+      --accent-glow: #E63B2E;
+      --accent-dim: #FECACA;
+      --accent-bg: rgba(204, 45, 34, 0.06);
+      --blue: #2563EB;
+      --blue-bg: rgba(37, 99, 235, 0.06);
+      --blue-border: rgba(37, 99, 235, 0.18);
+      --teal: #0D9488;
+      --teal-bg: rgba(13, 148, 136, 0.06);
+      --teal-border: rgba(13, 148, 136, 0.18);
+      --purple: #7C3AED;
+      --purple-bg: rgba(124, 58, 237, 0.06);
+      --purple-border: rgba(124, 58, 237, 0.18);
+      --amber: #D97706;
+      --amber-bg: rgba(217, 119, 6, 0.06);
+      --amber-border: rgba(217, 119, 6, 0.18);
+      --rose: #E11D48;
+      --rose-bg: rgba(225, 29, 72, 0.06);
+      --rose-border: rgba(225, 29, 72, 0.18);
+      --green: #059669;
+      --green-bg: rgba(5, 150, 105, 0.06);
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #F8F9FB;
+    --surface: #FFFFFF;
+    --surface-alt: #F0F2F5;
+    --border: #E0E4EA;
+    --border-strong: #C8CED8;
+    --fg: #111318;
+    --fg-muted: #5A6370;
+    --fg-dim: #8B95A1;
+    --accent: #CC2D22;
+    --accent-glow: #E63B2E;
+    --accent-dim: #FECACA;
+    --accent-bg: rgba(204, 45, 34, 0.06);
+    --blue: #2563EB;
+    --blue-bg: rgba(37, 99, 235, 0.06);
+    --blue-border: rgba(37, 99, 235, 0.18);
+    --teal: #0D9488;
+    --teal-bg: rgba(13, 148, 136, 0.06);
+    --teal-border: rgba(13, 148, 136, 0.18);
+    --purple: #7C3AED;
+    --purple-bg: rgba(124, 58, 237, 0.06);
+    --purple-border: rgba(124, 58, 237, 0.18);
+    --amber: #D97706;
+    --amber-bg: rgba(217, 119, 6, 0.06);
+    --amber-border: rgba(217, 119, 6, 0.18);
+    --rose: #E11D48;
+    --rose-bg: rgba(225, 29, 72, 0.06);
+    --rose-border: rgba(225, 29, 72, 0.18);
+    --green: #059669;
+    --green-bg: rgba(5, 150, 105, 0.06);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    max-width: 920px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 0;
+  }
+
+  /* ── Header ── */
+  .hero {
+    padding: 52px 0 36px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .hero-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .hero-eye {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.03em;
+    color: var(--fg);
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    color: var(--fg-muted);
+    font-size: 0.92rem;
+    margin: 0;
+    max-width: 640px;
+    line-height: 1.6;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 10px 16px;
+    cursor: pointer;
+    color: var(--fg-dim);
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    background: none;
+    transition: color 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .tab:hover { color: var(--fg-muted); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tp { display: none; }
+  .tp.active { display: block; }
+
+  /* ── Section ── */
+  .sec { margin-bottom: 44px; }
+  .sec h2 {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .sec .sub {
+    color: var(--fg-muted);
+    font-size: 0.85rem;
+    margin: 0 0 20px;
+  }
+
+  /* ── Card system ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .card-l { border-left: 3px solid; }
+
+  /* ── Agent node ── */
+  .ag-name {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+  .ag-role {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--surface-alt);
+    color: var(--fg-dim);
+    font-weight: 500;
+  }
+  .ag-desc {
+    font-size: 0.85rem;
+    color: var(--fg-muted);
+    margin: 8px 0 10px;
+    line-height: 1.55;
+  }
+  .ag-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--surface-alt);
+    color: var(--fg-dim);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Architecture SVG ── */
+  .arch-svg-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 20px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+  }
+  .arch-svg-wrap svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* ── Loop steps ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .step-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: var(--surface);
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .dot.on { background: var(--accent); }
+  .rail { width: 2px; flex: 1; background: var(--border); min-height: 20px; }
+  .step-body { padding-bottom: 18px; }
+  .step-body h4 {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin: 0 0 3px;
+  }
+  .step-body p {
+    font-size: 0.82rem;
+    color: var(--fg-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+  .loop-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 7px;
+    padding: 6px 10px;
+    background: var(--accent-bg);
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-weight: 500;
+    border: 1px solid var(--accent-dim);
+  }
+
+  /* ── Chain vis ── */
+  .chain-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 20px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+  }
+  .chain-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+  .chain-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 460px;
+  }
+  .ch-prim {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    border-radius: var(--r-sm);
+    border: 1px solid;
+  }
+  .ch-prim .cp-class {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+  .ch-prim .cp-info {
+    font-size: 0.7rem;
+    color: var(--fg-muted);
+    margin-top: 1px;
+  }
+  .ch-prim .cp-src {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--fg-dim);
+    margin-top: 3px;
+  }
+  .ch-arrow {
+    padding: 0 5px;
+    flex-shrink: 0;
+    color: var(--fg-dim);
+    font-size: 0.9rem;
+  }
+  .ch-sev {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: var(--r-sm);
+    border: 1px solid;
+  }
+
+  /* ── Schema block ── */
+  .schema {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 14px 18px;
+    font-family: var(--font-mono);
+    font-size: 0.73rem;
+    line-height: 1.75;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    white-space: pre;
+  }
+  .sk { color: var(--blue); }
+  .sv { color: var(--teal); }
+  .sc { color: var(--fg-dim); }
+
+  /* ── Rule list ── */
+  .rules { list-style: none; padding: 0; margin: 0 0 20px; }
+  .rules li {
+    display: flex;
+    align-items: start;
+    gap: 8px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: var(--fg-muted);
+  }
+  .rules li:last-child { border-bottom: none; }
+  .rules li strong { color: var(--fg); font-weight: 600; }
+  .rtag {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 3px;
+    letter-spacing: 0.03em;
+  }
+  .rtag-must { background: var(--rose-bg); color: var(--rose); border: 1px solid var(--rose-border); }
+  .rtag-do { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .rtag-no { background: var(--surface-alt); color: var(--fg-dim); border: 1px solid var(--border); }
+
+  /* ── Invariant list ── */
+  .inv-list { list-style: none; padding: 0; margin: 0; }
+  .inv-list li {
+    display: flex;
+    align-items: start;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--fg-muted);
+  }
+  .inv-list li strong { color: var(--fg); }
+  .inv-mark {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    margin-top: 2px;
+  }
+  .inv-kept { color: var(--green); }
+  .inv-new { color: var(--blue); }
+
+  /* ── Highlight ── */
+  .hi {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-dim);
+    border-radius: var(--r-sm);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+  .hi p { margin: 0; font-size: 0.85rem; color: var(--fg-muted); line-height: 1.55; }
+  .hi strong { color: var(--fg); }
+
+  /* ── Grid ── */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 600px) { .g2 { grid-template-columns: 1fr; } }
+
+  /* ── Table ── */
+  .mtable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .mtable th {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--fg-dim);
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  .mtable td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--fg-muted);
+    vertical-align: top;
+  }
+  .mtable tr:last-child td { border-bottom: none; }
+  .mtable code {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    background: var(--surface-alt);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ── Footer ── */
+  .foot {
+    border-top: 1px solid var(--border);
+    padding: 20px 0 28px;
+    margin-top: 12px;
+    color: var(--fg-dim);
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.3rem; }
+  }
+</style>
+
+<!-- ════════════════════════ HEADER ════════════════════════ -->
+<div class="hero">
+  <div class="hero-logo">
+    <svg class="hero-eye" viewBox="0 0 44 44" fill="none">
+      <circle cx="22" cy="22" r="20" stroke="var(--accent)" stroke-width="2"/>
+      <circle cx="22" cy="22" r="12" stroke="var(--accent)" stroke-width="1.5" opacity="0.5"/>
+      <circle cx="22" cy="22" r="5" fill="var(--accent)"/>
+      <circle cx="22" cy="12" r="2.5" fill="var(--accent)"/>
+      <circle cx="13.4" cy="27" r="2.5" fill="var(--accent)"/>
+      <circle cx="30.6" cy="27" r="2.5" fill="var(--accent)"/>
+    </svg>
+    <h1><span>Sharingan</span> — Architecture</h1>
+  </div>
+  <p class="hero-sub">Hệ thống audit bảo mật source code dạng multi-agent loop. Coordinator điều phối specialist agents chạy song song, Primitive Cache ghép bug đơn lẻ thành chain, Memory Store giữ trạng thái xuyên session.</p>
+</div>
+
+<!-- ════════════════════════ TABS ════════════════════════ -->
+<div class="tabs" role="tablist">
+  <button class="tab active" data-t="overview">Tổng quan</button>
+  <button class="tab" data-t="agents">Agents</button>
+  <button class="tab" data-t="loop">Loop</button>
+  <button class="tab" data-t="cache">Primitive Cache</button>
+  <button class="tab" data-t="mapping">v2 → v3</button>
+  <button class="tab" data-t="inv">Bất biến</button>
+</div>
+
+<!-- ═══════════════════ TAB: OVERVIEW ═══════════════════ -->
+<div class="tp active" id="t-overview">
+
+<div class="sec">
+  <h2>Kiến trúc tổng thể</h2>
+  <p class="sub">Coordinator ở trung tâm, specialist agents xung quanh, Primitive Cache ở giữa cho mọi agent đọc/ghi.</p>
+
+  <div class="arch-svg-wrap">
+    <svg viewBox="0 0 780 410" width="780" height="410">
+      <!-- Coordinator center -->
+      <rect x="290" y="10" width="200" height="56" rx="8" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="390" y="34" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="var(--accent)">COORDINATOR</text>
+      <text x="390" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--fg-dim)">lập kế hoạch · phân công · tổng hợp</text>
+
+      <!-- Agents row -->
+      <rect x="10" y="110" width="140" height="52" rx="6" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width="1"/>
+      <text x="80" y="134" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--teal)">RECON</text>
+      <text x="80" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--fg-dim)">bản đồ bề mặt</text>
+
+      <rect x="170" y="110" width="140" height="52" rx="6" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width="1"/>
+      <text x="240" y="134" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--purple)">NORMALIZE</text>
+      <text x="240" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--fg-dim)">parse → catalog</text>
+
+      <rect x="330" y="110" width="140" height="52" rx="6" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width="1"/>
+      <text x="400" y="134" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--amber)">GRAPH</text>
+      <text x="400" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--fg-dim)">4 đồ thị · live query</text>
+
+      <rect x="490" y="110" width="140" height="52" rx="6" fill="var(--rose-bg)" stroke="var(--rose-border)" stroke-width="1"/>
+      <text x="560" y="134" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--rose)">HUNTER ×N</text>
+      <text x="560" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--fg-dim)">song song · oracle</text>
+
+      <rect x="650" y="110" width="120" height="52" rx="6" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1"/>
+      <text x="710" y="134" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="var(--blue)">REPORTER</text>
+      <text x="710" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--fg-dim)">stamp · pack</text>
+
+      <!-- Arrows from coordinator -->
+      <line x1="340" y1="66" x2="80" y2="108" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="360" y1="66" x2="240" y2="108" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="390" y1="66" x2="400" y2="108" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="420" y1="66" x2="560" y2="108" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="450" y1="66" x2="710" y2="108" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- Primitive Cache center block -->
+      <rect x="190" y="210" width="400" height="60" rx="8" fill="var(--surface-alt)" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <text x="390" y="236" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="var(--accent)">PRIMITIVE CACHE</text>
+      <text x="390" y="256" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--fg-dim)">mọi primitive · chains_to · xuyên session</text>
+
+      <!-- Arrows to cache -->
+      <path d="M560 162 L560 190 Q560 200 550 205 L590 205" stroke="var(--rose-border)" stroke-width="1" fill="none" marker-end="none"/>
+      <line x1="560" y1="162" x2="500" y2="208" stroke="var(--rose)" stroke-width="1" opacity="0.5"/>
+      <text x="540" y="192" font-family="JetBrains Mono, monospace" font-size="7" fill="var(--rose)">ghi</text>
+      <line x1="400" y1="162" x2="400" y2="208" stroke="var(--amber)" stroke-width="1" opacity="0.5"/>
+      <text x="408" y="192" font-family="JetBrains Mono, monospace" font-size="7" fill="var(--amber)">đọc</text>
+      <line x1="710" y1="162" x2="540" y2="208" stroke="var(--blue)" stroke-width="1" opacity="0.5"/>
+      <text x="636" y="192" font-family="JetBrains Mono, monospace" font-size="7" fill="var(--blue)">đọc</text>
+
+      <!-- Coordinator reads cache -->
+      <path d="M390 66 L390 80 Q390 90 390 95 L390 95" stroke="var(--accent)" stroke-width="1" opacity="0.4" stroke-dasharray="3,2"/>
+      <line x1="310" y1="66" x2="280" y2="208" stroke="var(--accent)" stroke-width="1" opacity="0.3"/>
+      <text x="270" y="142" font-family="JetBrains Mono, monospace" font-size="7" fill="var(--accent)">chain scan</text>
+
+      <!-- Memory Store -->
+      <rect x="190" y="310" width="400" height="50" rx="8" fill="var(--surface-alt)" stroke="var(--border-strong)" stroke-width="1"/>
+      <text x="390" y="332" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600" fill="var(--fg-muted)">MEMORY STORE</text>
+      <text x="390" y="348" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--fg-dim)">hunt_state · budget · family_status · hypotheses</text>
+
+      <line x1="390" y1="272" x2="390" y2="308" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="3,3"/>
+
+      <!-- Loop arrow -->
+      <path d="M680 162 Q730 185 730 260 Q730 390 390 390 Q50 390 50 260 Q50 80 290 50" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.4" marker-end="url(#arrowhead)"/>
+      <defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)" opacity="0.5"/></marker></defs>
+      <text x="740" y="268" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--accent)" opacity="0.6" transform="rotate(90, 740, 268)">loop</text>
+    </svg>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Thay đổi cốt lõi so với pipeline tuyến tính</h2>
+  <div class="g2">
+    <div class="card">
+      <div style="font-family:var(--font-mono);font-size:0.72rem;font-weight:600;color:var(--rose);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em">✕ Pipeline cũ</div>
+      <ul style="margin:0;padding-left:16px;font-size:0.84rem;color:var(--fg-muted)">
+        <li>5 phase chạy tuần tự, không quay lại</li>
+        <li>Một model chạy hết, context bị đầy</li>
+        <li>Bug tìm riêng lẻ, không ghép chain</li>
+        <li>State mất sau compact</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--font-mono);font-size:0.72rem;font-weight:600;color:var(--green);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em">✓ Sharingan v3</div>
+      <ul style="margin:0;padding-left:16px;font-size:0.84rem;color:var(--fg-muted)">
+        <li>Coordinator loop — quay lại bất kỳ agent nào</li>
+        <li>Mỗi agent = thread riêng, context riêng</li>
+        <li>Primitive Cache ghép bug thành chain</li>
+        <li>Memory Store xuyên session</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ TAB: AGENTS ═══════════════════ -->
+<div class="tp" id="t-agents">
+<div class="sec">
+  <h2>Agent Roster</h2>
+  <p class="sub">Mỗi agent tạo một lần, dùng lại mọi session. Model được cấu hình khi tạo agent — không gán cứng.</p>
+
+  <div class="card card-l" style="border-left-color: var(--accent);">
+    <div class="ag-head">
+      <span class="ag-name" style="color:var(--accent)">coordinator</span>
+      <span class="ag-role">coordinator</span>
+    </div>
+    <div class="ag-desc">Nhận target repo, lập kế hoạch audit, phân công specialist agents, chạy chain scan trên Primitive Cache, quyết định quay lại phase nào, tổng hợp kết quả, trigger reporter khi đủ điều kiện.</div>
+    <div class="tags">
+      <span class="tag">send_to_agent</span>
+      <span class="tag">list_agents</span>
+      <span class="tag">memory</span>
+      <span class="tag">web_search</span>
+      <span class="tag">bash</span>
+      <span class="tag">read</span>
+    </div>
+  </div>
+
+  <div class="card card-l" style="border-left-color: var(--teal);">
+    <div class="ag-head">
+      <span class="ag-name" style="color:var(--teal)">recon</span>
+      <span class="ag-role">specialist · read-only</span>
+    </div>
+    <div class="ag-desc">Xoá rác (slim_target), xác định ngôn ngữ (route_skills), quét mọi entry point (surface_map), kéo advisory cũ, tách prior/off-prior, boot runtime nếu có Docker, giao git log với surface. <strong>Incremental mode:</strong> khi coordinator gọi lại ở vòng sau, chỉ scan delta (file mới/sửa từ lần recon trước dựa trên git diff hoặc mtime) thay vì chạy lại toàn bộ. <strong>Deep entry discovery:</strong> ngoài grep/glob, phân tích framework config (router files, decorator registry, middleware chain) để tìm entry point không theo convention.</div>
+    <div class="tags">
+      <span class="tag">bash</span>
+      <span class="tag">read</span>
+      <span class="tag">glob</span>
+      <span class="tag">grep</span>
+      <span class="tag">web_search</span>
+    </div>
+  </div>
+
+  <div class="card card-l" style="border-left-color: var(--purple);">
+    <div class="ag-head">
+      <span class="ag-name" style="color:var(--purple)">normalize</span>
+      <span class="ag-role">specialist</span>
+    </div>
+    <div class="ag-desc"><strong>Polyglot loop:</strong> coordinator spawn normalize riêng cho mỗi ngôn ngữ phát hiện bởi recon (Python, JS, Go, Java…). Mỗi lần parse AST/tree-sitter → functions.jsonl, merge vào catalog chung. <strong>Sink labeling hai tầng:</strong> (1) bảng sink tĩnh theo ngôn ngữ cho known patterns, (2) infer sink động từ data flow — wrapper function quanh eval/exec, ORM method nhận raw SQL, custom serializer đều được gắn nhãn. Bảng sink cập nhật liên tục qua các vòng hunt khi hunter phát hiện sink mới.</div>
+    <div class="tags">
+      <span class="tag">bash</span>
+      <span class="tag">code_execution</span>
+      <span class="tag">read</span>
+      <span class="tag">write</span>
+    </div>
+  </div>
+
+  <div class="card card-l" style="border-left-color: var(--amber);">
+    <div class="ag-head">
+      <span class="ag-name" style="color:var(--amber)">graph</span>
+      <span class="ag-role">specialist · persistent thread</span>
+    </div>
+    <div class="ag-desc">Xây 4 đồ thị (reachability, data flow, lifecycle, contract) từ functions.jsonl. Hoạt động như tool server — trả lời query từ coordinator và hunters. Thread giữ sống xuyên hunt.</div>
+    <div class="tags">
+      <span class="tag">bash</span>
+      <span class="tag">code_execution</span>
+      <span class="tag">read</span>
+      <span class="tag">grep</span>
+    </div>
+  </div>
+
+  <div class="card card-l" style="border-left-color: var(--rose);">
+    <div class="ag-head">
+      <span class="ag-name" style="color:var(--rose)">hunter</span>
+      <span class="ag-role">specialist · spawnable ×N</span>
+    </div>
+    <div class="ag-desc">Agent duy nhất được ghi finding. Coordinator spawn nhiều instance song song — mỗi instance nhận slice riêng (family/component) + hunt mode (cold/variant/chain). <strong>Scope isolation:</strong> mỗi hunter nhận file boundary rõ ràng, chỉ ghi finding trong scope — vượt scope → ghi suggestion cho coordinator thay vì tự hunt. <strong>Real-time cache read:</strong> hunter đọc Primitive Cache liên tục để tránh duplicate (dedup by path_line) và biết primitive mới từ hunter khác. <strong>Oracle protocol:</strong> chọn oracle theo primitive class (canary cho file_read, race cho race_condition, parser_diff cho deser, fuzz cho input validation), timeout cấu hình per-class, fail → ghi oracle_ran:false kèm failure_reason, không retry tự động.</div>
+    <div class="tags">
+      <span class="tag">bash</span>
+      <span class="tag">read</span>
+      <span class="tag">grep</span>
+      <span class="tag">memory</span>
+      <span class="tag">web_fetch</span>
+    </div>
+  </div>
+
+  <div class="card card-l" style="border-left-color: var(--blue);">
+    <div class="ag-head">
+      <span class="ag-name" style="color:var(--blue)">reporter</span>
+      <span class="ag-role">specialist</span>
+    </div>
+    <div class="ag-desc">Không tìm bug mới. Đọc candidates + chain findings từ Primitive Cache, chạy novelty_check (GHSA/OSV), gắn stamps (M/D/E), chạy critic, tính CVSS, đóng gói disclosure nếu đủ điều kiện.</div>
+    <div class="tags">
+      <span class="tag">web_search</span>
+      <span class="tag">web_fetch</span>
+      <span class="tag">bash</span>
+      <span class="tag">read</span>
+      <span class="tag">memory</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ TAB: LOOP ═══════════════════ -->
+<div class="tp" id="t-loop">
+<div class="sec">
+  <h2>Coordinator Agent Loop</h2>
+  <p class="sub">Vòng lặp liên tục — coordinator quyết định hành động tiếp theo dựa trên trạng thái thực.</p>
+
+  <div class="card">
+    <div style="font-family:var(--font-mono);font-size:0.72rem;font-weight:600;color:var(--fg-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Main Loop — Coordinator Thread</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-rail"><div class="dot on"></div><div class="rail"></div></div>
+        <div class="step-body">
+          <h4>1. Nhận target</h4>
+          <p>User gửi repo. Coordinator tạo session, mount repo, gắn memory store (nếu session trước đã hunt repo này → primitives và hunt_state sẵn sàng).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="dot"></div><div class="rail"></div></div>
+        <div class="step-body">
+          <h4>2. Recon</h4>
+          <p>Spawn recon trong thread riêng. Ghi surface.jsonl, routing.json, advisories.jsonl, budget.json vào filesystem chung. <strong>Lần đầu:</strong> full scan. <strong>Vòng sau:</strong> incremental — chỉ scan delta (git diff / mtime) và merge vào surface.jsonl hiện tại. Deep entry discovery phân tích framework config, decorator registry, middleware chain để bắt entry point ngoài convention.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="dot"></div><div class="rail"></div></div>
+        <div class="step-body">
+          <h4>3. Normalize (polyglot loop)</h4>
+          <p>Coordinator spawn normalize <strong>riêng cho mỗi ngôn ngữ</strong> phát hiện bởi recon — chạy song song. Mỗi instance parse AST/tree-sitter → functions.jsonl riêng, merge vào catalog chung. Sink labeling hai tầng: bảng tĩnh + infer động từ data flow. Bảng sink được cập nhật liên tục khi hunter phát hiện custom sink mới.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="dot"></div><div class="rail"></div></div>
+        <div class="step-body">
+          <h4>4. Graph</h4>
+          <p>Spawn graph. Xây 4 đồ thị, trả targets.jsonl. Thread <strong>giữ sống</strong> — hunters sẽ query sau.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="dot"></div><div class="rail"></div></div>
+        <div class="step-body">
+          <h4>5. Chain scan + lập kế hoạch hunt</h4>
+          <p>Đọc Primitive Cache từ vòng/session trước. <strong>Constraint-aware matching:</strong> không chỉ match class name qua chains_to, mà xét constraint thực tế — file_read bị giới hạn /data/ không thể đọc /etc/app.conf → loại khỏi candidate. Chia thành slices: chain-hunters + regular hunters. <strong>Priority scoring:</strong> chain candidate xếp theo severity tiềm năng × (1/constraint_count) × auth_level_inverse. Đảm bảo ≥20% slices thuộc off_prior (không chỉ ≥1).</p>
+          <div class="loop-back">↻ Mỗi vòng lặp bắt đầu lại từ đây — primitives mới → chain candidates mới</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="dot"></div><div class="rail"></div></div>
+        <div class="step-body">
+          <h4>6. Fan-out hunters ×N</h4>
+          <p>Spawn N threads song song, mỗi thread có <strong>file boundary</strong> rõ ràng. Chain-hunters xác nhận chain end-to-end. Regular hunters tìm primitive mới, <strong>đọc cache trước khi ghi</strong> để dedup (cùng path_line → skip, ghi suggestion thay vì duplicate). Hunter phát hiện target ngoài scope → ghi suggestion cho coordinator. Oracle chọn theo class: canary (file_read), race (race_condition), parser_diff (deser), fuzz (input validation) — fail ghi oracle_ran:false + failure_reason.</p>
+          <div class="loop-back">↻ Real-time broadcast: khi hunter ghi primitive mới → tất cả hunter khác thấy qua cache read → coordinator check chain candidates ngay → có thể spawn chain-hunter giữa vòng</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="dot"></div><div class="rail"></div></div>
+        <div class="step-body">
+          <h4>7. Thu hoạch</h4>
+          <p>Đọc primitives + chain findings. Coverage đủ? Chain candidate còn chưa thử? Family chưa close? Primitive mới? Nếu chưa xong → quay lại bước 5.</p>
+          <div class="loop-back">↑ Quay lại bước 5 nếu chưa đủ — dừng khi: hết budget, hoặc không còn chain candidate + tất cả family đã close, hoặc 2 vòng liên tiếp không primitive mới</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="dot"></div><div class="rail"></div></div>
+        <div class="step-body">
+          <h4>8. Report</h4>
+          <p>Spawn reporter. Novelty check, stamps, critic, CVSS, đóng gói.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="dot on"></div></div>
+        <div class="step-body">
+          <h4>9. Outcome evaluation</h4>
+          <p>Outcome rubric: M∧D∧E đủ? Novelty pass? Critic EMPTY? Đạt → close + xuất report. Không → ghi RESIDUAL kèm primitives chưa ghép để session sau tiếp tục.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>State Management</h2>
+  <p class="sub">Ba tầng, mỗi tầng giải quyết một vấn đề khác nhau.</p>
+  <div class="g2">
+    <div class="card card-l" style="border-left-color:var(--accent)">
+      <div class="ag-head"><span class="ag-name">Primitive Cache</span><span class="ag-role">xuyên session</span></div>
+      <div class="ag-desc">Collection "primitives" trong memory store. Mỗi primitive = một khả năng đơn lẻ kèm chains_to. Tồn tại giữa các session — vòng hunt sau đọc primitive từ vòng trước để ghép chain.</div>
+    </div>
+    <div class="card card-l" style="border-left-color:var(--blue)">
+      <div class="ag-head"><span class="ag-name">Memory Store</span><span class="ag-role">xuyên session</span></div>
+      <div class="ag-desc">hunt_state (nhãn READ/INFERRED/ASSUMED), budget tracking, family status, refuted hypotheses. Ground truth nằm ngoài context → compact không làm mất.</div>
+    </div>
+    <div class="card card-l" style="border-left-color:var(--purple)">
+      <div class="ag-head"><span class="ag-name">Context Editing</span><span class="ag-role">trong session</span></div>
+      <div class="ag-desc">Server tự xoá tool results cũ và thinking blocks đã dùng. Mỗi thread có context riêng → không nhiễu lẫn nhau.</div>
+    </div>
+    <div class="card card-l" style="border-left-color:var(--teal)">
+      <div class="ag-head"><span class="ag-name">Compaction</span><span class="ag-role">tự động</span></div>
+      <div class="ag-desc">Khi thread dài quá context window → server tự tóm tắt. Memory store giữ ground truth ngoài context nên compact an toàn.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ TAB: CACHE ═══════════════════ -->
+<div class="tp" id="t-cache">
+<div class="sec">
+  <h2>Primitive Cache &amp; Chain Builder</h2>
+  <p class="sub">Cache tập trung mọi primitive qua các vòng hunt, để vòng sau ghép chúng thành chain có severity cao hơn.</p>
+
+  <div class="hi">
+    <p><strong>Bài toán:</strong> Hunter A tìm được file-read, Hunter B tìm được secret-in-config — nhưng không biết nhau. Kết quả: hai bug Medium riêng lẻ thay vì một chain Critical. Primitive Cache giải quyết bằng cách cho mọi hunter ghi vào một store chung kèm trường <code>chains_to</code> để coordinator ghép cặp.</p>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Cấu trúc một Primitive</h2>
+  <div class="schema">{
+  <span class="sk">"id"</span>:            <span class="sv">"prim_a3f8c1"</span>,
+  <span class="sk">"class"</span>:         <span class="sv">"file_read"</span>,           <span class="sc">// loại primitive</span>
+  <span class="sk">"path_line"</span>:     <span class="sv">"src/utils/download.py:142"</span>,
+  <span class="sk">"entry"</span>:         <span class="sv">"GET /api/export?file="</span>,
+  <span class="sk">"auth"</span>:          <span class="sv">"user"</span>,                <span class="sc">// mức auth cần</span>
+  <span class="sk">"capability"</span>:    <span class="sv">"read arbitrary file on server"</span>,
+  <span class="sk">"constraint"</span>:    <span class="sv">"path must start with /data/"</span>,
+  <span class="sk">"oracle_ran"</span>:    <span class="sv">true</span>,
+  <span class="sk">"oracle_type"</span>:   <span class="sv">"canary"</span>,              <span class="sc">// canary|race|parser_diff|fuzz</span>
+  <span class="sk">"failure_reason"</span>: <span class="sv">null</span>,                 <span class="sc">// null nếu pass, string nếu fail</span>
+  <span class="sk">"confirm_tier"</span>:  <span class="sv">"docker-validated"</span>,
+  <span class="sk">"hunter_id"</span>:     <span class="sv">"thread_hunt_cold_02"</span>,
+  <span class="sk">"session"</span>:       <span class="sv">"session_001"</span>,
+  <span class="sk">"chains_to"</span>:     [<span class="sv">"secret_read"</span>, <span class="sv">"ssrf"</span>],   <span class="sc">// gợi ý chain tiếp</span>
+  <span class="sk">"chained_from"</span>:  [],                   <span class="sc">// gốc — chưa thuộc chain nào</span>
+  <span class="sk">"stamp"</span>:         { <span class="sk">"M"</span>: <span class="sv">true</span>, <span class="sk">"D"</span>: <span class="sv">true</span>, <span class="sk">"E"</span>: <span class="sv">true</span> }
+}</div>
+</div>
+
+<div class="sec">
+  <h2>Ví dụ Chain</h2>
+
+  <div class="chain-box">
+    <div class="chain-label">Chain 1 — File Read → Secret → RCE</div>
+    <div class="chain-row">
+      <div class="ch-prim" style="background:var(--amber-bg);border-color:var(--amber-border)">
+        <div class="cp-class" style="color:var(--amber)">file_read</div>
+        <div class="cp-info">GET /api/export?file=../../app.conf</div>
+        <div class="cp-src">hunter_cold_02 · vòng 1</div>
+      </div>
+      <div class="ch-arrow">→</div>
+      <div class="ch-prim" style="background:var(--amber-bg);border-color:var(--amber-border)">
+        <div class="cp-class" style="color:var(--amber)">secret_read</div>
+        <div class="cp-info">app.conf chứa DB_PASSWORD + API_KEY</div>
+        <div class="cp-src">hunter_cold_05 · vòng 1</div>
+      </div>
+      <div class="ch-arrow">→</div>
+      <div class="ch-prim" style="background:var(--rose-bg);border-color:var(--rose-border)">
+        <div class="cp-class" style="color:var(--rose)">rce_via_api</div>
+        <div class="cp-info">Admin API eval() với API_KEY từ config</div>
+        <div class="cp-src">chain_hunter · vòng 2</div>
+      </div>
+      <div class="ch-arrow">→</div>
+      <div class="ch-sev" style="background:var(--rose-bg);border-color:var(--rose-border);color:var(--rose)">CRITICAL</div>
+    </div>
+  </div>
+
+  <div class="chain-box">
+    <div class="chain-label">Chain 2 — IDOR + Stored XSS → Account Takeover</div>
+    <div class="chain-row">
+      <div class="ch-prim" style="background:var(--purple-bg);border-color:var(--purple-border)">
+        <div class="cp-class" style="color:var(--purple)">idor_write</div>
+        <div class="cp-info">PUT /users/{id}/bio — không check ownership</div>
+        <div class="cp-src">hunter_cold_01 · vòng 1</div>
+      </div>
+      <div class="ch-arrow">→</div>
+      <div class="ch-prim" style="background:var(--purple-bg);border-color:var(--purple-border)">
+        <div class="cp-class" style="color:var(--purple)">stored_xss</div>
+        <div class="cp-info">Admin panel render bio không escape</div>
+        <div class="cp-src">hunter_variant_03 · vòng 1</div>
+      </div>
+      <div class="ch-arrow">→</div>
+      <div class="ch-sev" style="background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber)">HIGH</div>
+    </div>
+  </div>
+
+  <div class="chain-box">
+    <div class="chain-label">Chain 3 — Xuyên session: Session 1 tìm SSRF, Session 2 escalate</div>
+    <div class="chain-row">
+      <div class="ch-prim" style="background:var(--teal-bg);border-color:var(--teal-border)">
+        <div class="cp-class" style="color:var(--teal)">ssrf_blind</div>
+        <div class="cp-info">POST /webhooks/test — url không validate</div>
+        <div class="cp-src">hunter_cold_03 · session 1</div>
+      </div>
+      <div class="ch-arrow">→</div>
+      <div class="ch-prim" style="background:var(--teal-bg);border-color:var(--teal-border)">
+        <div class="cp-class" style="color:var(--teal)">cloud_metadata</div>
+        <div class="cp-info">SSRF → 169.254.169.254 → IAM creds</div>
+        <div class="cp-src">chain_hunter · session 2</div>
+      </div>
+      <div class="ch-arrow">→</div>
+      <div class="ch-sev" style="background:var(--rose-bg);border-color:var(--rose-border);color:var(--rose)">CRITICAL</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2>Quy tắc Cache</h2>
+  <ul class="rules">
+    <li>
+      <span class="rtag rtag-must">BẮT BUỘC</span>
+      <span><strong>Mỗi primitive trong chain phải có oracle_ran: true riêng.</strong> Không ghép primitive chưa xác nhận cơ chế.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-must">BẮT BUỘC</span>
+      <span><strong>Chain-hunter phải chạy PoC end-to-end.</strong> Output bước 1 là input bước 2, trong cùng một lần thử. Oracle xác nhận toàn bộ chain.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-must">BẮT BUỘC</span>
+      <span><strong>chains_to chỉ chứa lớp primitive đã biết:</strong> file_read, file_write, secret_read, ssrf, sqli, rce, deser, idor_read, idor_write, stored_xss, auth_bypass, race_condition, path_traversal, open_redirect.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-must">BẮT BUỘC</span>
+      <span><strong>Dedup trước khi ghi:</strong> hunter đọc cache, check path_line trùng. Cùng path_line + cùng class → skip. Cùng path_line + khác class → ghi bình thường (cùng dòng code có thể là nhiều loại bug).</span>
+    </li>
+    <li>
+      <span class="rtag rtag-must">BẮT BUỘC</span>
+      <span><strong>Constraint-aware chain matching:</strong> coordinator xét constraint thực tế khi ghép cặp. Primitive A constraint "path must start with /data/" + Primitive B cần đọc /etc/ → loại khỏi candidate. Không match chỉ dựa trên class name.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-do">NÊN</span>
+      <span><strong>Coordinator ưu tiên chain candidate theo priority score:</strong> severity tiềm năng × (1/constraint_count) × auth_level_inverse. Chain ít constraint + auth thấp = ưu tiên cao.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-do">NÊN</span>
+      <span><strong>Hunter ghi chains_to ngay khi tìm được primitive.</strong> Coordinator có thể spawn chain-hunter song song giữa vòng. Các hunter khác thấy qua real-time cache read.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-do">NÊN</span>
+      <span><strong>Hunter phát hiện target ngoài scope → ghi suggestion.</strong> Không tự hunt, ghi vào cache field "suggestions" để coordinator phân phối lại cho hunter đúng scope.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-no">KHÔNG</span>
+      <span><strong>Coordinator không tự ghép chain.</strong> Chỉ phát hiện candidate + xét constraint. Chain-hunter mới đọc code, xây PoC, chạy oracle.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-no">KHÔNG</span>
+      <span><strong>Không ghép primitive từ hai repo khác nhau.</strong> Cache thuộc một target repo.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-no">KHÔNG</span>
+      <span><strong>Chain finding không thay thế primitive gốc.</strong> Cả hai vẫn tồn tại. Chain là entry mới với chained_from trỏ về gốc.</span>
+    </li>
+    <li>
+      <span class="rtag rtag-no">KHÔNG</span>
+      <span><strong>Oracle fail không retry tự động.</strong> Ghi oracle_ran:false + failure_reason. Coordinator quyết định retry ở vòng sau với config khác hay skip.</span>
+    </li>
+  </ul>
+</div>
+</div>
+
+<!-- ═══════════════════ TAB: MAPPING ═══════════════════ -->
+<div class="tp" id="t-mapping">
+<div class="sec">
+  <h2>Mapping: Pipeline v2 → Sharingan v3</h2>
+  <p class="sub">Mỗi bước pipeline cũ ánh xạ vào agent hoặc cơ chế mới.</p>
+  <div style="overflow-x:auto">
+  <table class="mtable">
+    <thead><tr><th>v2</th><th>v3</th><th>Ghi chú</th></tr></thead>
+    <tbody>
+      <tr><td><code>slim_target</code></td><td><code>recon</code></td><td>Giữ nguyên, chạy trong container</td></tr>
+      <tr><td><code>route_skills</code></td><td><code>recon</code></td><td>Ghi routing.json vào shared filesystem</td></tr>
+      <tr><td><code>surface_map</code></td><td><code>recon</code></td><td>surface.jsonl + deep entry discovery (framework config, decorators)</td></tr>
+      <tr><td><code>advisory_prior</code></td><td><code>recon</code> + web_search</td><td>Server tool thay curl thủ công</td></tr>
+      <tr><td><code>threat_model_sync</code></td><td><code>coordinator</code></td><td>Coordinator tách prior/off-prior</td></tr>
+      <tr><td><code>build_codex_context</code></td><td><strong>Loại bỏ</strong></td><td>Context editing thay thế</td></tr>
+      <tr><td><code>runtime_recon</code></td><td><code>recon</code> + Docker</td><td>Container boot app trực tiếp</td></tr>
+      <tr><td><code>ast / tree-sitter</code></td><td><code>normalize</code> ×N</td><td><strong>Mới:</strong> polyglot loop — mỗi ngôn ngữ = instance riêng, song song</td></tr>
+      <tr><td><code>functions.jsonl</code></td><td><code>normalize</code></td><td>Merge từ nhiều instance. Sink = bảng tĩnh + infer động</td></tr>
+      <tr><td>4 graph queries</td><td><code>graph</code> · persistent</td><td><strong>Mới:</strong> thread sống xuyên hunt</td></tr>
+      <tr><td><code>cold hunt</code></td><td><code>hunter</code> ×N</td><td>Song song trên các slice khác nhau</td></tr>
+      <tr><td><code>godhand</code></td><td><code>hunter</code> system prompt</td><td>"Bám taint" trong prompt</td></tr>
+      <tr><td><code>variant hunt</code></td><td><code>hunter</code> mode=variant</td><td>Cùng agent, khác mode</td></tr>
+      <tr><td><code>fuzzer</code></td><td><code>hunter</code> bash</td><td>Container sandbox, 127.0.0.1</td></tr>
+      <tr><td><code>hunt_state.md</code></td><td><strong>Memory Store</strong></td><td><strong>Mới:</strong> xuyên session, không mất sau compact</td></tr>
+      <tr><td><code>oracle</code></td><td><code>hunter</code> bash</td><td>Container sandbox</td></tr>
+      <tr><td>Bug riêng lẻ</td><td><strong>Primitive Cache</strong></td><td><strong>Mới:</strong> dedup + constraint-aware chain + broadcast + oracle protocol</td></tr>
+      <tr><td><code>novelty_check</code></td><td><code>reporter</code> + web_search</td><td>Server tool</td></tr>
+      <tr><td><code>stamps M/D/E</code></td><td><strong>Outcome rubric</strong></td><td><strong>Mới:</strong> grader tự động</td></tr>
+      <tr><td><code>close_finding</code></td><td><code>reporter</code> + outcome</td><td>Chỉ close khi rubric pass</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ TAB: INVARIANTS ═══════════════════ -->
+<div class="tp" id="t-inv">
+<div class="sec">
+  <h2>Bất biến giữ lại</h2>
+  <p class="sub">Nguyên tắc cốt lõi không đổi — chỉ cơ chế thực thi khác.</p>
+  <ul class="inv-list">
+    <li><span class="inv-mark inv-kept">✓</span><span><strong>Model nói "vulnerable" ≠ bằng chứng.</strong> Oracle phải ran:true.</span></li>
+    <li><span class="inv-mark inv-kept">✓</span><span><strong>Thiếu cạnh trong graph ≠ an toàn.</strong> Graph trả "không tìm thấy" → RESIDUAL, không PASS.</span></li>
+    <li><span class="inv-mark inv-kept">✓</span><span><strong>Report không đi tìm bug.</strong> Reporter không có grep/code_execution cho source.</span></li>
+    <li><span class="inv-mark inv-kept">✓</span><span><strong>≥1 family ngoài thiên kiến.</strong> Coordinator kiểm tra budget trước khi spawn.</span></li>
+    <li><span class="inv-mark inv-kept">✓</span><span><strong>Family chưa close = chưa thử.</strong> Memory store có trường closed per family.</span></li>
+    <li><span class="inv-mark inv-kept">✓</span><span><strong>Nhãn READ/INFERRED/ASSUMED.</strong> Giờ trong memory store, cùng ngữ nghĩa.</span></li>
+  </ul>
+</div>
+
+<div class="sec">
+  <h2>Bất biến mới</h2>
+  <ul class="inv-list">
+    <li><span class="inv-mark inv-new">+</span><span><strong>Coordinator không tự hunt.</strong> Chỉ lập kế hoạch, phân công, tổng hợp. Grep sink = vi phạm.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Graph sống xuyên hunt.</strong> Thread không terminate — hunters query bất kỳ lúc nào.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Mỗi hunter thread = context riêng + file boundary.</strong> Không nhiễu lẫn nhau. Vượt scope → suggestion, không tự hunt.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Outcome rubric thay kiểm tra thủ công.</strong> M∧D∧E là rubric criteria. Grader độc lập.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Primitive Cache cho phép chain xuyên hunter/session.</strong> Mỗi primitive kèm chains_to. Coordinator ghép cặp → chain-hunter xác nhận end-to-end.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Chain phải có oracle end-to-end.</strong> Hai primitive riêng lẻ đều oracle_ran:true chưa đủ — chain-hunter phải chạy PoC nối liền cả chuỗi.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Session budget giới hạn chi phí.</strong> Gần hết → tổng hợp kết quả hiện có, không spawn thêm.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>RESIDUAL kèm chains_to.</strong> Primitive chưa ghép được → ghi RESIDUAL để session sau tiếp tục chain.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Dedup by path_line trước khi ghi cache.</strong> Cùng path_line + cùng class = duplicate → skip. Tránh N hunter ghi cùng bug.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Constraint-aware chain matching.</strong> Coordinator xét constraint thực tế khi ghép cặp, không chỉ class name. Chain bất khả thi bị loại trước khi spawn hunter.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Recon incremental.</strong> Vòng sau chỉ scan delta (git diff / mtime). Full rescan chỉ khi coordinator yêu cầu rõ ràng.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Normalize polyglot loop.</strong> Mỗi ngôn ngữ = một normalize instance. Sink labeling = bảng tĩnh + infer động, cập nhật liên tục.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Oracle protocol per-class.</strong> Mỗi primitive class có oracle type + timeout riêng. Fail → oracle_ran:false + failure_reason, không retry tự động.</span></li>
+    <li><span class="inv-mark inv-new">+</span><span><strong>Hunter broadcast qua cache.</strong> Hunter đọc cache real-time → biết primitive mới từ hunter khác → tránh duplicate + phối hợp ngầm.</span></li>
+  </ul>
+</div>
+</div>
+
+<div class="foot">Sharingan v3 · Multi-Agent Loop Architecture · Primitive Cache + Chain Builder</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tp').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const p=document.getElementById('t-'+t.dataset.t);
+    if(p)p.classList.add('active');
+  });
+});
+</script>

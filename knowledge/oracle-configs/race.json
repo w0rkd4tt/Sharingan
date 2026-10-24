@@ -1,0 +1,10 @@
+{
+  "type": "race",
+  "description": "Concurrent execution to detect race conditions",
+  "applicable_classes": ["race_condition"],
+  "technique": "Send N identical requests simultaneously, check for inconsistent state",
+  "concurrent_requests": 10,
+  "detection": "Response differences (balance changed, duplicate records, inconsistent state)",
+  "tools": ["turbo-intruder", "race-the-web", "custom threading"],
+  "timeout_seconds": 30
+}

@@ -1,0 +1,14 @@
+{
+  "language": "python",
+  "sinks": {
+    "rce": ["eval", "exec", "os.system", "os.popen", "subprocess.call", "subprocess.run", "subprocess.Popen", "__import__"],
+    "sqli": ["cursor.execute", "raw", "extra", "RawSQL", "connection.execute"],
+    "file_read": ["open", "io.open", "pathlib.Path.read_text", "pathlib.Path.read_bytes"],
+    "file_write": ["open", "io.open", "pathlib.Path.write_text", "pathlib.Path.write_bytes"],
+    "ssrf": ["requests.get", "requests.post", "requests.request", "urllib.request.urlopen", "httpx.get", "httpx.post", "aiohttp.ClientSession.get"],
+    "deser": ["pickle.loads", "pickle.load", "yaml.load", "yaml.unsafe_load", "jsonpickle.decode", "marshal.loads"],
+    "xss": ["mark_safe", "Markup", "render_template_string", "jinja2.Template"],
+    "path_traversal": ["os.path.join", "send_file", "send_from_directory", "open"],
+    "open_redirect": ["redirect", "HttpResponseRedirect"]
+  }
+}

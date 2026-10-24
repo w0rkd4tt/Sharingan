@@ -1,0 +1,14 @@
+{
+  "language": "java",
+  "sinks": {
+    "rce": ["Runtime.exec", "ProcessBuilder", "ScriptEngine.eval"],
+    "sqli": ["Statement.execute", "Statement.executeQuery", "createNativeQuery", "createQuery", "jdbcTemplate.query"],
+    "file_read": ["FileInputStream", "Files.readAllBytes", "BufferedReader", "FileReader"],
+    "file_write": ["FileOutputStream", "Files.write", "BufferedWriter", "FileWriter"],
+    "ssrf": ["URL.openConnection", "HttpURLConnection", "HttpClient.send", "RestTemplate.getForObject"],
+    "deser": ["ObjectInputStream.readObject", "XMLDecoder.readObject", "XStream.fromXML", "readValue"],
+    "xss": ["PrintWriter.write", "response.getWriter", "response.getOutputStream"],
+    "path_traversal": ["new File", "Paths.get", "FilenameUtils.getName"],
+    "open_redirect": ["response.sendRedirect", "ModelAndView"]
+  }
+}

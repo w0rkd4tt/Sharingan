@@ -1,188 +1,171 @@
-# Sharingan - Công Cụ Quét Bảo Mật Web Tự Động
+# SharinganV2
 
-![Sharingan Logo](telegram-cloud-photo-size-5-6294263289865160011-y.jpg)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yourusername/sharinganv2/main/assets/sharingan-logo.png" alt="SharinganV2 Logo" width="200"/>
+</p>
 
-## Tổng Quan
+<p align="center">
+  <strong>Advanced Web Reconnaissance Tool for Security Professionals</strong>
+</p>
 
-Sharingan là một công cụ quét bảo mật web tự động kết hợp nhiều công cụ trinh sát với khả năng quét của Burp Suite và cung cấp thông báo lỗ hổng qua Telegram.
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#tools-integration">Tools Integration</a> •
+  <a href="#contributing">Contributing</a> •
+  <a href="#license">License</a>
+</p>
 
-## Sơ Đồ Kiến Trúc
+## Features
 
-```mermaid
-graph TD
-    A[Input Domain] --> B[Khám Phá Domain]
-    B --> C[Crawl URL]
-    C --> D[Cơ Sở Dữ Liệu]
-    D --> E[Burp Scanner]
-    
-    subgraph "Quét Burp Suite"
-        E --> E1[Extensions Tùy Chỉnh]
-        E --> E2[Luật BChecks]
-        E1 --> E3[Phát Hiện Lỗ Hổng]
-        E2 --> E3
-    end
-    
-    E3 --> F[Tạo Báo Cáo]
-    F --> G[Thông Báo Telegram]
-```
+SharinganV2 combines multiple web reconnaissance tools to provide comprehensive security testing capabilities:
 
-## Quy Trình Hoạt Động
+- **URL Discovery**: ParamSpider, waybackurls, gauplus, hakrawler, and katana to find hidden endpoints
+- **Parameter Detection**: Automatically identifies URL parameters for deeper testing
+- **Vulnerability Scanning**: Optional fuzzing templates to detect common security issues
+- **Burp Suite Integration**: Sends findings to Burp Suite via REST API for deeper analysis
+- **Telegram Notifications**: Real-time alerts and reports via Telegram bot
+- **Beautiful Reports**: Generates comprehensive HTML and Markdown reports
+- **Modular Architecture**: Easily extendable to add new tools and capabilities
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Scanner
-    participant VPN
-    participant BurpSuite
-    participant Telegram
+## Installation
 
-    User->>Scanner: Bắt đầu quét
-    alt Bật crawl
-        Scanner->>Scanner: Khám phá mục tiêu
-    end
-    
-    loop Cho mỗi mục tiêu
-        alt Bật VPN
-            Scanner->>VPN: Đổi IP
-        end
-        Scanner->>BurpSuite: Tạo quét
-        loop Kiểm tra trạng thái
-            Scanner->>BurpSuite: Kiểm tra
-            alt Phát hiện lỗ hổng
-                Scanner->>Telegram: Gửi cảnh báo
-            end
-        end
-    end
-    Scanner->>User: Kết quả cuối cùng
-```
+### Prerequisites
 
-## Tính Năng
+- Python 3.7+
+- The following external tools:
+  - [ParamSpider](https://github.com/0xKayala/ParamSpider)
+  - [waybackurls](https://github.com/tomnomnom/waybackurls)
+  - [gau/gauplus](https://github.com/bp0lr/gauplus)
+  - [hakrawler](https://github.com/hakluke/hakrawler)
+  - [katana](https://github.com/projectdiscovery/katana)
 
-### 1. Khám Phá và Crawl Domain
-- Tích hợp nhiều công cụ trinh sát:
-  - **GAU**: Khám phá URL từ nhiều nguồn
-  - **Katana**: Crawler thông minh với phân tích JavaScript
-  - **Hakrawler**: Web crawler tốc độ cao
-  - **Waybackurls**: Khám phá URL lịch sử
-  - **Subjs**: Khám phá file JavaScript
+### Setup
 
-### 2. Quét Lỗ Hổng
-- Tích hợp Burp Suite REST API
-- Cấu hình tùy chỉnh:
-  - Extensions Burp Suite
-  - Tích hợp BChecks
-  - Profile quét tùy chỉnh
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/sharinganv2.git
+   cd sharinganv2
+   ```
 
-### 3. Tạo Báo Cáo
-- Phân loại lỗ hổng theo mức độ nghiêm trọng
-- Nhiều định dạng xuất:
-  - Markdown (.md)
-  - JSON
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+   ```
 
-### 4. Hệ Thống Thông Báo
-- Thông báo Telegram theo thời gian thực
-- Chi tiết lỗ hổng
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Yêu Cầu Hệ Thống
+4. Create configuration files:
+   ```bash
+   python sharingan.py --create-env
+   python sharingan.py --create-templates
+   python sharingan.py --create-config
+   ```
 
-- Burp Suite Professional với REST API
-- Python 3.8+
-- Các công cụ cần thiết:
+5. Update the `.env` file with your configuration:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your favorite editor
+   ```
+
+## Usage
+
+### Basic Usage
+
 ```bash
-go install github.com/lc/gau/v2/cmd/gau@latest
-go install github.com/projectdiscovery/katana/cmd/katana@latest
-go install github.com/hakluke/hakrawler@latest
-go install github.com/tomnomnom/waybackurls@latest
+python sharingan.py -t example.com -o reports/example
 ```
 
-## Cài Đặt
+### With Fuzzing Enabled
 
-1. Tải mã nguồn:
 ```bash
-git clone https://github.com/yourusername/Sharingan.git
-cd Sharingan
+python sharingan.py -t example.com --fuzzing
 ```
 
-2. Cài đặt thư viện Python:
+### With Burp Suite Integration
+
 ```bash
-pip install -r requirements.txt
+python sharingan.py -t example.com --burp-api http://localhost:1337/v0.1 --burp-key YOUR_API_KEY
 ```
 
-3. Cấu hình môi trường:
+### With Telegram Notifications
+
 ```bash
-cp .env.example .env
-# Chỉnh sửa file .env với cấu hình của bạn
+python sharingan.py -t example.com --telegram-token YOUR_BOT_TOKEN --telegram-chat YOUR_CHAT_ID
 ```
 
-## Cách Sử Dụng
+### Advanced Options
 
-### Lệnh Cơ Bản
 ```bash
-python main.py --target-urls example.com
+python sharingan.py -t example.com --threads 20 --verbose --fuzzing
 ```
 
-### Các Tùy Chọn
-```bash
-python main.py --crawl --use-vpn --target-urls example.com --max-targets 10
+## Configuration
+
+### Environment Variables
+
+Configure SharinganV2 by creating a `.env` file with the following options:
+
+```
+# Burp Suite API
+BURP_API_URL=http://localhost:1337/v0.1
+BURP_API_KEY=your_burp_api_key_here
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=your_telegram_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+
+# Templates
+TEMPLATES_DIR=src/template
+
+# Options
+ENABLE_FUZZING=false
 ```
 
-### Tham Số
-- `--crawl`: Bật tính năng crawl
-- `--target-urls`: URL mục tiêu
-- `--max-targets`: Số lượng mục tiêu tối đa
-- `--use-vpn`: Bật luân chuyển VPN
+### Fuzzing Templates
 
-## Cấu Hình
+Custom fuzzing templates can be added to the `src/template` directory. Each template should be a JSON file with the following structure:
 
-### Thiết Lập Burp Suite
-1. Bật REST API trong Burp Suite
-2. Cấu hình API endpoint
-3. Thiết lập BChecks
-
-### Thiết Lập Telegram Bot
-1. Tạo bot qua BotFather
-2. Cấu hình token trong .env
-3. Thiết lập chat ID
-
-## Ví Dụ Báo Cáo
-
-### Markdown
-```markdown
-# Báo Cáo Quét
-## Mức Độ Cao
-- [CVE-2023-XXXX] SQL Injection
-  - URL: https://example.com/vulnerable
-  - Mô tả: ...
-```
-
-### JSON
 ```json
 {
-  "vulnerabilities": {
-    "high": [...],
-    "medium": [...],
-    "low": [...],
-    "info": [...]
-  }
+  "name": "Cross-Site Scripting (XSS)",
+  "description": "Kiểm tra lỗ hổng XSS bằng các payload phổ biến",
+  "payloads": [
+    "<script>alert(1)</script>",
+    "<img src=x onerror=alert(1)>"
+  ],
+  "patterns": [
+    "<script>alert(1)</script>",
+    "<img src=x onerror=alert(1)>"
+  ]
 }
 ```
 
-## Giấy Phép
+## Tools Integration
 
-MIT License
+SharinganV2 integrates with the following external tools:
 
-## Đóng Góp
+- **ParamSpider**: Discovers parameters in URL endpoints
+- **waybackurls**: Finds historical URLs from the Wayback Machine
+- **gau/gauplus**: Gathers URLs from multiple sources
+- **hakrawler**: Fast web crawler for security testing
+- **katana**: Advanced crawling and spidering framework
 
-1. Fork dự án
-2. Tạo nhánh tính năng
-3. Gửi pull request
+## Contributing
 
-## Tác Giả
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-- Tên của bạn (@yourusername)
+## License
 
-## Cảm Ơn
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- Team ProjectDiscovery
-- PortSwigger (Burp Suite)
-- Cộng đồng phát triển
+## Acknowledgements
+
+- All the amazing open-source tools that SharinganV2 builds upon
+- The security research community for their continuous innovation
