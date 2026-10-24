@@ -1,7 +1,8 @@
 """
-Scanner and Crawler modules
+Module quét và phát hiện lỗ hổng
 """
-from .scanner import Scanner
-from .crawler import Crawler
 
-__all__ = ['Scanner', 'Crawler']
+from .scanner import Scanner
+from .fuzzer import Fuzzer
+from .burp_api import BurpAPI
+from .report_generator import ReportGenerator

@@ -1,0 +1,168 @@
+{
+  "default": {
+    "scan_configurations": {
+      "default": {
+        "name": "Default Configuration",
+        "description": "Standard scan configuration for general web applications",
+        "scan_configurations": [
+          {
+            "name": "Audit checks - all except time-based detection methods",
+            "type": "NamedConfiguration"
+          }
+        ],
+        "scan_speed": "normal",
+        "issues_reported": {
+          "scan_type_intrusive_active": true,
+          "scan_type_passive": true,
+          "scan_type_javascript_analysis": true,
+          "scan_type_light_active": true,
+          "scan_type_medium_active": true
+        }
+      },
+      "quick": {
+        "name": "Quick Scan",
+        "description": "Fast scan with basic vulnerability checks",
+        "scan_configurations": [
+          {
+            "name": "Audit checks - passive",
+            "type": "NamedConfiguration"
+          },
+          {
+            "name": "Audit checks - light active",
+            "type": "NamedConfiguration"
+          }
+        ],
+        "scan_speed": "fast",
+        "issues_reported": {
+          "scan_type_intrusive_active": false,
+          "scan_type_passive": true,
+          "scan_type_javascript_analysis": true,
+          "scan_type_light_active": true,
+          "scan_type_medium_active": false
+        }
+      },
+      "thorough": {
+        "name": "Thorough Scan",
+        "description": "Comprehensive scan with all checks enabled",
+        "scan_configurations": [
+          {
+            "name": "Audit checks - all except JavaScript analysis",
+            "type": "NamedConfiguration"
+          }
+        ],
+        "scan_speed": "slow",
+        "issues_reported": {
+          "scan_type_intrusive_active": true,
+          "scan_type_passive": true,
+          "scan_type_javascript_analysis": true,
+          "scan_type_light_active": true,
+          "scan_type_medium_active": true
+        }
+      },
+      "custom": {
+        "name": "Custom Configuration",
+        "description": "User-defined scan configuration with specific parameters",
+        "scan_configurations": [
+          {
+            "name": "Audit checks - all except time-based detection methods",
+            "type": "NamedConfiguration"
+          }
+        ],
+        "scan_speed": "normal",
+        "issues_reported": {
+          "scan_type_intrusive_active": true,
+          "scan_type_passive": true,
+          "scan_type_javascript_analysis": false,
+          "scan_type_light_active": true,
+          "scan_type_medium_active": true
+        },
+        "never_stop_audit_due_to_application_errors": true,
+        "never_stop_audit_due_to_network_errors": false
+      },
+      "api_testing": {
+        "name": "API Testing",
+        "description": "Optimized for REST API and web service testing",
+        "scan_configurations": [
+          {
+            "name": "Audit checks - all except JavaScript analysis",
+            "type": "NamedConfiguration"
+          }
+        ],
+        "scan_speed": "normal",
+        "issues_reported": {
+          "scan_type_intrusive_active": true,
+          "scan_type_passive": true,
+          "scan_type_javascript_analysis": false,
+          "scan_type_light_active": true,
+          "scan_type_medium_active": true
+        }
+      },
+      "owasp_top10": {
+        "name": "OWASP Top 10",
+        "description": "Focus on OWASP Top 10 vulnerabilities",
+        "scan_configurations": [
+          {
+            "name": "Audit checks - critical issues only",
+            "type": "NamedConfiguration"
+          }
+        ],
+        "scan_speed": "normal",
+        "issues_reported": {
+          "scan_type_intrusive_active": true,
+          "scan_type_passive": true,
+          "scan_type_javascript_analysis": true,
+          "scan_type_light_active": true,
+          "scan_type_medium_active": true
+        }
+      }
+    },
+    "custom_test": {
+      "scan_configurations": [
+        {
+          "name": "Custom test scan",
+          "scan_configuration": {
+            "scan_type": "LIGHT_ACTIVE",
+            "scan_speed": "fast",
+            "never_stop_audit_due_to_application_errors": true,
+            "never_stop_audit_due_to_excessive_requests": true
+          }
+        }
+      ]
+    },
+    "persistence_test": {
+      "scan_configurations": [
+        {
+          "name": "Persistence test",
+          "scan_configuration": {
+            "scan_type": "PASSIVE",
+            "scan_speed": "normal"
+          }
+        }
+      ]
+    }
+  },
+  "custom_test": {
+    "scan_configurations": [
+      {
+        "name": "Custom test scan",
+        "scan_configuration": {
+          "scan_type": "LIGHT_ACTIVE",
+          "scan_speed": "fast",
+          "never_stop_audit_due_to_application_errors": true,
+          "never_stop_audit_due_to_excessive_requests": true
+        }
+      }
+    ]
+  },
+  "persistence_test": {
+    "scan_configurations": [
+      {
+        "name": "Persistence test",
+        "scan_configuration": {
+          "scan_type": "PASSIVE",
+          "scan_speed": "normal"
+        }
+      }
+    ]
+  }
+}
