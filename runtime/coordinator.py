@@ -7,6 +7,7 @@ from typing import Optional
 
 from .agent import Agent, AgentResult, load_prompt
 from .session import Session
+from .reactive import ReactiveLoop
 from .llm.base import LLMBackend
 
 import sys
@@ -75,41 +76,21 @@ class Coordinator:
             }
             session.budget.spend("web", "mapping", 5, "mapping phase")
 
-            # Phase 3: Hunt loop
-            logger.info("[Phase 3] Vulnerability Hunting")
-            hunt_round = 0
-            hunt_history = []
-            while session.budget.can_spend(10):
-                hunt_round += 1
-                logger.info(f"  Hunt round {hunt_round}")
-
-                rotation = session.anti_bias.validate_family_rotation(hunt_history)
-                if not rotation["valid"]:
-                    logger.warning(f"  Forced rotation from {rotation['stuck_family']}")
-
-                hunter = self._make_agent("hunter-web", "agents/web/hunter-web.md")
-                ctx = session.get_context("web")
-                ctx["hunt_round"] = hunt_round
-                ctx["mode"] = "cold" if hunt_round == 1 else "variant"
-
-                r = await hunter.run(
-                    f"Hunt for vulnerabilities. Round {hunt_round}. "
-                    f"Mode: {ctx['mode']}. Check cache for existing findings first.",
-                    context=ctx,
-                )
-                results["phases"][f"hunt_round_{hunt_round}"] = {
-                    "content": r.content, "tools": r.tool_calls_made,
-                }
-                session.budget.spend("web", "hunting", 10, f"hunt round {hunt_round}")
-                hunt_history.append({"family": "mixed", "round": hunt_round})
-
-                stats = session.cache.stats()
-                if stats["oracle_confirmed"] >= 5:
-                    logger.info(f"  Found {stats['oracle_confirmed']} confirmed — moving to exploitation")
-                    break
-
-                if hunt_round >= 5:
-                    break
+            # Phase 3: Reactive Hunt Loop
+            logger.info("[Phase 3] Reactive Vulnerability Hunting")
+            reactive = ReactiveLoop(
+                session=session,
+                llm=self.llm,
+                tools=self.tools,
+                middleware=self.middleware,
+                make_agent_fn=lambda name, path: self._make_agent(name, path),
+            )
+            hunt_result = await reactive.run_reactive_hunt(max_rounds=5)
+            results["phases"]["hunting"] = {
+                "rounds": hunt_result["rounds_completed"],
+                "actions": hunt_result["actions_taken"],
+                "reactive_stats": hunt_result["stats"],
+            }
 
             # Phase 4: Chain exploitation
             chains = session.cache.find_chain_candidates()
@@ -177,27 +158,21 @@ class Coordinator:
             results["phases"]["graph"] = {"content": r.content, "tools": r.tool_calls_made}
             session.budget.spend("src", "graph", 5, "graph building")
 
-            # Steps 5-7: Hunt loop
-            logger.info("[Steps 5-7] Hunt Loop")
-            hunt_round = 0
-            while session.budget.can_spend(10):
-                hunt_round += 1
-                hunter = self._make_agent("hunter-src", "agents/src/hunter-src.md")
-                ctx = session.get_context("src")
-                ctx["hunt_round"] = hunt_round
-                ctx["repo_path"] = repo_path
-                r = await hunter.run(
-                    f"Hunt for vulnerabilities in source code. Round {hunt_round}.",
-                    context=ctx,
-                )
-                results["phases"][f"hunt_round_{hunt_round}"] = {
-                    "content": r.content, "tools": r.tool_calls_made,
-                }
-                session.budget.spend("src", "hunting", 10, f"hunt round {hunt_round}")
-
-                stats = session.cache.stats()
-                if stats["oracle_confirmed"] >= 5 or hunt_round >= 5:
-                    break
+            # Steps 5-7: Reactive Hunt Loop
+            logger.info("[Steps 5-7] Reactive Hunt Loop")
+            reactive = ReactiveLoop(
+                session=session,
+                llm=self.llm,
+                tools=self.tools,
+                middleware=self.middleware,
+                make_agent_fn=lambda name, path: self._make_agent(name, path),
+            )
+            hunt_result = await reactive.run_reactive_hunt(max_rounds=5)
+            results["phases"]["hunting"] = {
+                "rounds": hunt_result["rounds_completed"],
+                "actions": hunt_result["actions_taken"],
+                "reactive_stats": hunt_result["stats"],
+            }
 
             # Step 8: Report
             logger.info("[Step 8] Report Generation")

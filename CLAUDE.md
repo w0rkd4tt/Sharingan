@@ -75,6 +75,33 @@ Unified store at `targets/<TARGET>/cache/primitives.jsonl`. Both flows write her
 | Memory Store | `targets/<TARGET>/memory_store.json` |
 | Budget | `targets/<TARGET>/budget.json` |
 
+## Reactive Loop (khi phát hiện bug mới)
+
+Khi hunter ghi primitive mới vào cache, reactive loop kích hoạt ngay (không chờ hết round):
+
+```
+New primitive → VALIDATE → EXPAND → CHAIN → PROPAGATE → ADAPT
+```
+
+| Step | Action | Khi nào |
+|------|--------|---------|
+| **VALIDATE** | Chạy oracle nếu `oracle_ran: false` | Mọi finding mới chưa confirm |
+| **EXPAND variant** | Spawn variant hunter ở endpoints/files gần | Tìm thêm bug cùng class |
+| **EXPAND class** | Ghi hint test co-occurring classes | sqli → cũng test auth_bypass, idor |
+| **CHAIN** | Match `chains_to` với cache, spawn chain-hunter ngay | Có chain candidate viable |
+| **PROPAGATE** | Brain update + memory + cross-flow hint | Mọi finding |
+| **ADAPT** | Boost family priority, rotation warning | Khi pattern thay đổi |
+
+Co-occurrence map (tìm class A → nên test class B):
+- sqli → auth_bypass, idor_read
+- file_read → path_traversal, secret_read  
+- ssrf → file_read, secret_read
+- idor_read → idor_write, auth_bypass
+- path_traversal → file_read, file_write
+- deser → rce
+
+Implementation: `runtime/reactive.py`
+
 ## Agent Runtime Layer
 
 Standalone Python runtime — runs Sharingan without Claude Code. Supports any LLM backend.
